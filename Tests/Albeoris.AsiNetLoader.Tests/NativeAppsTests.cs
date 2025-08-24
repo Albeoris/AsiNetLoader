@@ -42,8 +42,7 @@ public class NativeAppsTests
         proc.WaitForExit(30_000);
 
         Assert.True(proc.HasExited, "Process did not exit within timeout");
-        Int32 code = proc.ExitCode;
-        Assert.True(code == 0, $"Process exited with code {code}.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
+        Assert.True(proc.ExitCode == 0, $"Process exited with code {proc.ExitCode}.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
         Assert.True(stdout.Contains($"Hello from app::PrintHello (cdecl) [{platform}]"), $"Process did not print hello message.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
     }
 
