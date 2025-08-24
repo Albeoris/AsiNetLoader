@@ -14,8 +14,5 @@
     </PropertyGroup>
 
     <Import Project="Albeoris.TestNativeApp.vcxitems" Label="Shared" />
-    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 
 </Project>
