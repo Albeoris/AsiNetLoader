@@ -9,7 +9,7 @@
     </ItemGroup>
 
     <PropertyGroup>
-      <OutDir>$(SolutionDir)Output\Tests\x64\</OutDir>
+      <OutDir>..\..\Output\Tests\x64\</OutDir>
       <IntDir>obj\x64\</IntDir>
     </PropertyGroup>
 

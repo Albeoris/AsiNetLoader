@@ -9,7 +9,11 @@ extern "C" __declspec(dllimport) HRESULT WINAPI DirectInput8Create(HINSTANCE hin
 // Local test function to be hooked later; must be cdecl
 extern "C" void __cdecl PrintHello()
 {
-    std::puts("Hello from app::PrintHello (cdecl)");
+    #if defined(_WIN64)
+    std::puts("Hello from app::PrintHello (cdecl) [x64]");
+    #else
+    std::puts("Hello from app::PrintHello (cdecl) [x86]");
+    #endif
 }
 
 using DirectInput8Create_t = HRESULT (WINAPI *)(HINSTANCE, DWORD, REFIID, LPVOID*, LPUNKNOWN);
