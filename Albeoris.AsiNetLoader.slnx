@@ -1,0 +1,20 @@
+<Solution>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/Albeoris.TestNativeApp/Albeoris.TestNativeAppX64.vcxproj">
+      <!-- For Rider -->
+      <Configuration Solution="Debug|Any CPU" Project="Release|x64" />
+      <Configuration Solution="Release|Any CPU" Project="Release|x64" />
+      <!-- For MSBuild -->
+      <BuildType Project="Release" />
+      <Platform Project="x64" />
+    </Project>
+    <Project Path="Tests/Albeoris.TestNativeApp/Albeoris.TestNativeAppX86.vcxproj">
+        <!-- For Rider -->
+        <Configuration Solution="Debug|Any CPU" Project="Release|Win32" />
+        <Configuration Solution="Release|Any CPU" Project="Release|Win32" />
+        <!-- For MSBuild -->
+        <BuildType Project="Release" />
+        <Platform Project="Win32" />
+    </Project>
+  </Folder>
+</Solution>
