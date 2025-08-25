@@ -1,7 +1,8 @@
+#include <chrono>
 #include <Windows.h>
 #include <cstdio>
-#include <string>
 #include <iostream>
+#include <thread>
 
 // prototypes from dinput8.dll (import not required for dynamic lookup; kept for signature reference)
 extern "C" __declspec(dllimport) HRESULT WINAPI DirectInput8Create(HINSTANCE hinst, DWORD dwVersion, REFIID riidltf, LPVOID* ppvOut, LPUNKNOWN punkOuter);
@@ -18,25 +19,12 @@ extern "C" void __cdecl PrintHello()
 
 using DirectInput8Create_t = HRESULT (WINAPI *)(HINSTANCE, DWORD, REFIID, LPVOID*, LPUNKNOWN);
 
-static std::wstring GetModuleDir()
-{
-    wchar_t path[MAX_PATH];
-    GetModuleFileNameW(nullptr, path, MAX_PATH);
-    wchar_t* last = wcsrchr(path, L'\\');
-    if (last) *last = 0;
-    return path;
-}
-
 int main()
 {
-    // Ensure our local copy of dinput8.dll is preferred on both x86/x64
-    std::wstring appDir = GetModuleDir();
-    SetDllDirectoryW(appDir.c_str());
-
     HMODULE dinput = LoadLibraryW(L"dinput8.dll");
     if (!dinput)
     {
-        std::wcerr << L"Failed to load dinput8.dll from " << appDir << std::endl;
+        std::wcerr << L"Failed to load dinput8.dll from " << std::endl;
         return 10;
     }
 
@@ -56,6 +44,8 @@ int main()
     LPVOID outObj = nullptr;
     HRESULT hr = pDirectInput8Create(GetModuleHandleW(nullptr), 0x0800, GUID_NULL, &outObj, nullptr);
     std::printf("DirectInput8Create returned: 0x%08lX\n", (unsigned long)hr);
+
+    // std::this_thread::sleep_for(std::chrono::milliseconds(30000));
 
     // Call local cdecl test function
     PrintHello();
