@@ -1,6 +1,9 @@
 #include <iostream>
 #include <thread>
 #include <windows.h>
+#include <filesystem>
+
+import Albeoris.DotNetRuntimeHost;
 
 #define ASI_NET_LOADER_WRITE_DEBUG_MESSAGES
 
@@ -20,8 +23,32 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
     case DLL_PROCESS_ATTACH:
         WriteDebugMessage("DllMain: DLL_PROCESS_ATTACH");
         
-        // TODO: Demonstrate the new C#-style HostFxr API
-        // DemoNewHostFxrAPI();
+        try
+        {
+            // Initialize .NET Runtime using HostFactory
+            std::filesystem::path runtimeConfigPath = "YourApp.runtimeconfig.json";
+            auto host = Albeoris::DotNetRuntimeHost::HostFactory::CreateHost(runtimeConfigPath);
+            
+            WriteDebugMessage("DllMain: .NET Runtime initialized successfully");
+            
+            // TODO: Load managed assembly and call methods
+            // Example:
+            // auto functionPtr = host->LoadAssemblyAndGetFunctionPointer(
+            //     L"YourAssembly.dll",
+            //     L"YourNamespace.YourClass, YourAssembly",
+            //     L"YourMethod"
+            // );
+        }
+        catch (const Albeoris::DotNetRuntimeHost::Exception& ex)
+        {
+            WriteDebugMessage("DllMain: Failed to initialize .NET Runtime");
+            WriteDebugMessage(ex.what());
+        }
+        catch (const std::exception& ex)
+        {
+            WriteDebugMessage("DllMain: Unexpected error");
+            WriteDebugMessage(ex.what());
+        }
         
         break;
     case DLL_THREAD_ATTACH:

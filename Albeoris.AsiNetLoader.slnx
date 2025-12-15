@@ -23,5 +23,9 @@
       <Configuration Solution="Debug|Win32" Project="Release|Win32" />
       <Configuration Solution="Debug|x64" Project="Release|x64" />
   </Project>
-  <Project Path="Albeoris.DotNetRuntimeHost\Albeoris.DotNetRuntimeHost.vcxproj"/>
+  <Project Path="Albeoris.DotNetRuntimeHost\Albeoris.DotNetRuntimeHost.vcxproj">
+      <BuildType Project="Release" />
+      <Configuration Solution="Debug|Win32" Project="Release|Win32" />
+      <Configuration Solution="Debug|x64" Project="Release|x64" />
+  </Project>
 </Solution>
