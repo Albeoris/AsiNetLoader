@@ -1,53 +1,27 @@
 <Solution>
-    
-    <Folder Name="Solution Items">
-        <File Path="LICENSE" />
-        <File Path="MsBuild.bat" />
-        <File Path="README.md" />
-    </Folder>
-
-    <Project Path="Albeoris.AsiNetLoader/Albeoris.AsiNetLoaderX64.vcxproj">
-        <!-- For Rider -->
-        <Configuration Solution="Debug|Any CPU" Project="Release|x64" />
-        <Configuration Solution="Release|Any CPU" Project="Release|x64" />
-        <!-- For MSBuild -->
-        <BuildType Project="Release" />
-        <Platform Project="x64" />
+  <Configurations>
+    <Platform Name="Win32" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path="LICENSE" />
+    <File Path="MsBuild.bat" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/Albeoris.AsiNetLoader.Tests/Albeoris.AsiNetLoader.Tests.csproj">
+      <BuildDependency Project="Tests/Albeoris.TestNativeApp/Albeoris.TestNativeApp.vcxproj" />
     </Project>
-    <Project Path="Albeoris.AsiNetLoader/Albeoris.AsiNetLoaderX86.vcxproj">
-        <!-- For Rider -->
-        <Configuration Solution="Debug|Any CPU" Project="Release|Win32" />
-        <Configuration Solution="Release|Any CPU" Project="Release|Win32" />
-        <!-- For MSBuild -->
+    <Project Path="Tests\Albeoris.TestNativeApp\Albeoris.TestNativeApp.vcxproj">
         <BuildType Project="Release" />
-        <Platform Project="Win32" />
+        <Configuration Solution="Debug|Win32" Project="Release|Win32" />
+        <Configuration Solution="Debug|x64" Project="Release|x64" />
     </Project>
-
-    <Folder Name="Shared Projects">
-        <File Path="Albeoris.AsiNetLoader/Albeoris.AsiNetLoader.vcxitems"/>
-        <File Path="Tests/Albeoris.TestNativeApp/Albeoris.TestNativeApp.vcxitems"/>
-    </Folder>
-    
-    <Folder Name="Tests">
-        <Project Path="Tests/Albeoris.TestNativeApp/Albeoris.TestNativeAppX64.vcxproj">
-            <!-- For Rider -->
-            <Configuration Solution="Debug|Any CPU" Project="Release|x64" />
-            <Configuration Solution="Release|Any CPU" Project="Release|x64" />
-            <!-- For MSBuild -->
-            <BuildType Project="Release" />
-            <Platform Project="x64" />
-        </Project>
-        <Project Path="Tests/Albeoris.TestNativeApp/Albeoris.TestNativeAppX86.vcxproj">
-            <!-- For Rider -->
-            <Configuration Solution="Debug|Any CPU" Project="Release|Win32" />
-            <Configuration Solution="Release|Any CPU" Project="Release|Win32" />
-            <!-- For MSBuild -->
-            <BuildType Project="Release" />
-            <Platform Project="Win32" />
-        </Project>
-        <Project Path="Tests/Albeoris.AsiNetLoader.Tests/Albeoris.AsiNetLoader.Tests.csproj">
-            <BuildDependency Project="Tests/Albeoris.TestNativeApp/Albeoris.TestNativeAppX64.vcxproj" />
-            <BuildDependency Project="Tests/Albeoris.TestNativeApp/Albeoris.TestNativeAppX86.vcxproj" />
-        </Project>
-    </Folder>
+  </Folder>
+  <Project Path="Albeoris.AsiNetLoader\Albeoris.AsiNetLoader.vcxproj">
+      <BuildType Project="Release" />
+      <Configuration Solution="Debug|Win32" Project="Release|Win32" />
+      <Configuration Solution="Debug|x64" Project="Release|x64" />
+  </Project>
+  <Project Path="Albeoris.DotNetRuntimeHost\Albeoris.DotNetRuntimeHost.vcxproj"/>
 </Solution>

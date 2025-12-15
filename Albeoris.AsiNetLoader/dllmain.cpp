@@ -19,6 +19,10 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
     {
     case DLL_PROCESS_ATTACH:
         WriteDebugMessage("DllMain: DLL_PROCESS_ATTACH");
+        
+        // TODO: Demonstrate the new C#-style HostFxr API
+        // DemoNewHostFxrAPI();
+        
         break;
     case DLL_THREAD_ATTACH:
         WriteDebugMessage("DllMain: DLL_THREAD_ATTACH");

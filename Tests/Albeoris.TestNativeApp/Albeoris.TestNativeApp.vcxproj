@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <ItemGroup Label="ProjectConfigurations">
+        <ProjectConfiguration Include="Release|x64">
+            <Configuration>Release</Configuration>
+            <Platform>x64</Platform>
+            <OutDir>..\..\Output\Tests\x64\</OutDir>
+            <IntDir>obj\x64\</IntDir>
+        </ProjectConfiguration>
+        <ProjectConfiguration Include="Release|Win32">
+            <Configuration>Release</Configuration>
+            <Platform>Win32</Platform>
+            <OutDir>..\..\Output\Tests\x86\</OutDir>
+            <IntDir>obj\x86\</IntDir>
+        </ProjectConfiguration>
+    </ItemGroup>
+
+<!--    <PropertyGroup>-->
+<!--        <OutDir>..\..\Output\Tests\x64\</OutDir>-->
+<!--        <IntDir>obj\x64\</IntDir>-->
+<!--    </PropertyGroup>-->
 
     <ItemGroup>
         <ClCompile Include="main.cpp" />
@@ -21,9 +41,17 @@
         <WholeProgramOptimization>true</WholeProgramOptimization>
         <CharacterSet>Unicode</CharacterSet>
     </PropertyGroup>
-
+    
     <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
 
+    <PropertyGroup Condition="'$(Platform)'=='Win32'" Label="Configuration">
+        <TargetName>$(TargetName)X86</TargetName>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Platform)'=='x64'" Label="Configuration">
+        <TargetName>$(TargetName)X64</TargetName>
+    </PropertyGroup>
+    
     <!-- Common compiler/linker settings shared by x86/x64 -->
     <ItemDefinitionGroup>
         <ClCompile>
@@ -43,4 +71,5 @@
     <Target Name="EnsureOutDir" BeforeTargets="PrepareForBuild">
         <MakeDir Directories="$(OutDir)" />
     </Target>
+
 </Project>

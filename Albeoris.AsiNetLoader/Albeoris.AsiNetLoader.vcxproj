@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <ItemGroup Label="ProjectConfigurations">
+        <ProjectConfiguration Include="Release|Win32">
+            <Configuration>Release</Configuration>
+            <Platform>Win32</Platform>
+            <OutDir>..\Output\Plugin\x86\</OutDir>
+            <IntDir>obj\x86\</IntDir>
+        </ProjectConfiguration>
+        <ProjectConfiguration Include="Release|x64">
+            <Configuration>Release</Configuration>
+            <Platform>x64</Platform>
+            <OutDir>..\Output\Plugin\x64\</OutDir>
+            <IntDir>obj\x64\</IntDir>
+        </ProjectConfiguration>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ClCompile Include="Modules\Albeoris.Clr\GamePluginHost.DotNetPluginLoader.ixx" />
+        <ClCompile Include="Modules\Albeoris.Clr\GamePluginHost.ixx" />
+        <ClCompile Include="Modules\Albeoris.Clr\GamePluginHost.Platform.ixx" />
+        <ClCompile Include="dllmain.cpp" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Albeoris.DotNetRuntimeHost\Albeoris.DotNetRuntimeHost.vcxproj">
+            <Project>{aa9b1fa4-6a00-48c7-9609-49f0327edbb9}</Project>
+            <Name>Albeoris.DotNetRuntimeHost</Name>
+            <LinkLibraryDependencies>true</LinkLibraryDependencies>
+            <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+        </ProjectReference>
+    </ItemGroup>
+
+    <PropertyGroup Label="Globals">
+        <VCProjectVersion>17.0</VCProjectVersion>
+        <Keyword>Win32Proj</Keyword>
+        <RootNamespace>Albeoris.AsiNetLoader</RootNamespace>
+        <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    </PropertyGroup>
+
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
+    <PropertyGroup Label="Configuration">
+        <ConfigurationType>DynamicLibrary</ConfigurationType>
+        <UseDebugLibraries>false</UseDebugLibraries>
+        <PlatformToolset>v143</PlatformToolset>
+        <WholeProgramOptimization>true</WholeProgramOptimization>
+        <CharacterSet>Unicode</CharacterSet>
+    </PropertyGroup>
+
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+
+    <PropertyGroup Condition="'$(Platform)'=='Win32'" Label="Configuration">
+        <TargetName>$(TargetName)X86</TargetName>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Platform)'=='x64'" Label="Configuration">
+        <TargetName>$(TargetName)X64</TargetName>
+    </PropertyGroup>
+
+    <PropertyGroup Label="Configuration">
+        <TargetExt>.asi</TargetExt>
+        <TargetFileName>$(TargetName)$(TargetExt)</TargetFileName>
+        <ExtensionsToDeleteOnClean>$(ExtensionsToDeleteOnClean);*.asi</ExtensionsToDeleteOnClean>
+    </PropertyGroup>
+
+    <!-- Common compiler/linker settings shared by x86/x64 -->
+    <ItemDefinitionGroup>
+        <ClCompile>
+            <WarningLevel>Level3</WarningLevel>
+            <SDLCheck>true</SDLCheck>
+            <ConformanceMode>true</ConformanceMode>
+            <!-- Ensure C++20 is used so modules syntax is recognized -->
+            <LanguageStandard>stdcpp23</LanguageStandard>
+            <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
+        </ClCompile>
+        <Link>
+            <SubSystem>Console</SubSystem>
+            <GenerateDebugInformation>true</GenerateDebugInformation>
+        </Link>
+    </ItemDefinitionGroup>
+
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+
+    <!-- Ensure OutDir exists; OutDir differs per project, so leave value there -->
+    <Target Name="EnsureOutDir" BeforeTargets="PrepareForBuild">
+        <MakeDir Directories="$(OutDir)" />
+    </Target>
+
+</Project>

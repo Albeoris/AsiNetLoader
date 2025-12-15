@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Static library with C++23 modules (.ixx) to run .NET host in native app.
+  Split by: common, per-platform (Win32/x64), per-config (Debug/Release).
+  Keep property overrides minimal; prefer common defaults.
+-->
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <!-- List of supported (Configuration|Platform) tuples -->
+    <ItemGroup Label="ProjectConfigurations">
+        <ProjectConfiguration Include="Debug|Win32">
+            <Configuration>Debug</Configuration>
+            <Platform>Win32</Platform>
+        </ProjectConfiguration>
+        <ProjectConfiguration Include="Release|Win32">
+            <Configuration>Release</Configuration>
+            <Platform>Win32</Platform>
+        </ProjectConfiguration>
+        <ProjectConfiguration Include="Debug|x64">
+            <Configuration>Debug</Configuration>
+            <Platform>x64</Platform>
+        </ProjectConfiguration>
+        <ProjectConfiguration Include="Release|x64">
+            <Configuration>Release</Configuration>
+            <Platform>x64</Platform>
+        </ProjectConfiguration>
+    </ItemGroup>
+
+    <PropertyGroup Label="Globals">
+        <!-- VS/VC project schema version -->
+        <VCProjectVersion>15.0</VCProjectVersion>
+        <!-- Stable unique ID for solution/project references -->
+        <ProjectGuid>{AA9B1FA4-6A00-48C7-9609-49F0327EDBB9}</ProjectGuid>
+        <!-- Affects default filters/templates in legacy tooling -->
+        <Keyword>Win32Proj</Keyword>
+        <!-- Default C++ namespace for generated artifacts -->
+        <RootNamespace>Albeoris.DotNetRuntimeHost</RootNamespace>
+        <!-- Windows SDK to target (10.0 = latest installed) -->
+        <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    </PropertyGroup>
+
+    <!-- Imports baseline MSBuild defaults for C++ toolchain -->
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
+    <!-- Configuration-wide defaults (inherited by all configs unless overridden) -->
+    <PropertyGroup Label="Configuration">
+        <!-- Static library (.lib) output -->
+        <ConfigurationType>StaticLibrary</ConfigurationType>
+        <!-- VS 2022 toolset -->
+        <PlatformToolset>v143</PlatformToolset>
+        <!-- Use Unicode APIs/CRT -->
+        <CharacterSet>Unicode</CharacterSet>
+        <!-- Prefer 64-bit host tools for faster builds -->
+        <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+        <!-- Link debug CRT only in Debug -->
+        <UseDebugLibraries>false</UseDebugLibraries>
+        <!-- LTCG/IPO on Release only (overridden below if needed) -->
+        <WholeProgramOptimization>true</WholeProgramOptimization>
+        <!-- Fail build on warnings we elevate (see ClCompile below) -->
+        <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <!-- Debug-only overrides -->
+    <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+        <UseDebugLibraries>true</UseDebugLibraries>
+        <!-- Disable WPO/LTCG for quick iteration -->
+        <WholeProgramOptimization>false</WholeProgramOptimization>
+    </PropertyGroup>
+
+    <!-- Imports common C++ props (after setting core config props) -->
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+
+    <!-- User-specific property sheets (optional, per platform) -->
+    <ImportGroup Label="PropertySheets">
+        <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"
+                Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')"
+                Label="LocalAppDataPlatform" />
+    </ImportGroup>
+
+    <!-- Linker incremental mode for fast Debug relinks -->
+    <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+        <LinkIncremental>true</LinkIncremental>
+    </PropertyGroup>
+
+    <!-- Deterministic Release linking -->
+    <PropertyGroup Condition="'$(Configuration)'=='Release'">
+        <LinkIncremental>false</LinkIncremental>
+    </PropertyGroup>
+
+    <!-- ====================== Common defaults ====================== -->
+    <ItemDefinitionGroup>
+        <ClCompile>
+            <!-- No PCH; modules (.ixx) usually don't want PCH -->
+            <PrecompiledHeader>NotUsing</PrecompiledHeader>
+            <!-- If enabled on some TU, this is the header name -->
+            <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+
+            <!-- /W4 -->
+            <WarningLevel>Level4</WarningLevel>
+            <!-- /sdl (secure code checks) -->
+            <SDLCheck>true</SDLCheck>
+            <!-- /permissive- (enforce standard conformance) -->
+            <ConformanceMode>true</ConformanceMode>
+            <!-- C++23 mode -->
+            <LanguageStandard>stdcpp23</LanguageStandard>
+            <!-- Treat C4715 (“not all control paths return a value”) as error -->
+            <TreatSpecificWarningsAsErrors>4715</TreatSpecificWarningsAsErrors>
+
+            <!-- Library build; append user/parent defines -->
+            <PreprocessorDefinitions>_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+        </ClCompile>
+        <Link>
+            <!-- Win subsystem (even for .lib affects manifest/tooling) -->
+            <SubSystem>Windows</SubSystem>
+            <!-- /DEBUG (PDBs) for both configs; size trimmed in Release -->
+            <GenerateDebugInformation>true</GenerateDebugInformation>
+        </Link>
+    </ItemDefinitionGroup>
+
+    <!-- ====================== Platform-specific ====================== -->
+    <!-- Win32/x86: add WIN32 define -->
+    <ItemDefinitionGroup Condition="'$(Platform)'=='Win32'">
+        <ClCompile>
+            <PreprocessorDefinitions>WIN32;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+        </ClCompile>
+    </ItemDefinitionGroup>
+
+    <!-- x64: nothing extra; keep defaults clean -->
+    <ItemDefinitionGroup Condition="'$(Platform)'=='x64'">
+        <ClCompile />
+    </ItemDefinitionGroup>
+
+    <!-- ====================== Config-specific ====================== -->
+    <!-- Debug: no optimizations, _DEBUG define -->
+    <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+        <ClCompile>
+            <Optimization>Disabled</Optimization>
+            <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+        </ClCompile>
+    </ItemDefinitionGroup>
+
+    <!-- Release: O2 + /Gy /Oi + NDEBUG; linker size/ICF optimizations -->
+    <ItemDefinitionGroup Condition="'$(Configuration)'=='Release'">
+        <ClCompile>
+            <!-- /O2 -->
+            <Optimization>MaxSpeed</Optimization>
+            <!-- /Gy (function-level linking) -->
+            <FunctionLevelLinking>true</FunctionLevelLinking>
+            <!-- /Oi (intrinsics) -->
+            <IntrinsicFunctions>true</IntrinsicFunctions>
+            <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+        </ClCompile>
+        <Link>
+            <!-- /OPT:ICF -->
+            <EnableCOMDATFolding>true</EnableCOMDATFolding>
+            <!-- /OPT:REF -->
+            <OptimizeReferences>true</OptimizeReferences>
+        </Link>
+    </ItemDefinitionGroup>
+
+    <!-- ====================== Sources (modules) ====================== -->
+    <ItemGroup>
+        <ClCompile Include="DotNetRuntimeHost\DotNetRuntimeHost.ixx"/>
+        <ClCompile Include="DotNetRuntimeHost\Internal\Arguments.ixx"/>
+        <ClCompile Include="DotNetRuntimeHost\Internal\IHostFactory.ixx"/>
+        <ClCompile Include="DotNetRuntimeHost\Internal\Internals.ixx"/>
+        <ClCompile Include="DotNetRuntimeHost\Internal\WinAPI.ixx" />
+        <ClCompile Include="DotNetRuntimeHost\Internal\WindowsHost.ixx"/>
+        <ClCompile Include="DotNetRuntimeHost\Internal\WindowsHostFactory.ixx"/>
+        <ClCompile Include="DotNetRuntimeHost\Public\Exception.ixx"/>
+        <ClCompile Include="DotNetRuntimeHost\Public\HostFactory.ixx" />
+        <ClCompile Include="DotNetRuntimeHost\Public\IHost.ixx"/>
+        <ClCompile Include="DotNetRuntimeHost\Public\Types.ixx"/>
+    </ItemGroup>
+
+    <!-- Final targets import (defines build/link steps) -->
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+
+</Project>
