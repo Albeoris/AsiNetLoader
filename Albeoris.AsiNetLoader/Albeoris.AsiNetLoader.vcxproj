@@ -5,14 +5,10 @@
         <ProjectConfiguration Include="Release|Win32">
             <Configuration>Release</Configuration>
             <Platform>Win32</Platform>
-            <OutDir>..\Output\Plugin\x86\</OutDir>
-            <IntDir>obj\x86\</IntDir>
         </ProjectConfiguration>
         <ProjectConfiguration Include="Release|x64">
             <Configuration>Release</Configuration>
             <Platform>x64</Platform>
-            <OutDir>..\Output\Plugin\x64\</OutDir>
-            <IntDir>obj\x64\</IntDir>
         </ProjectConfiguration>
     </ItemGroup>
 
@@ -21,6 +17,12 @@
         <ClCompile Include="Modules\Albeoris.Clr\GamePluginHost.ixx" />
         <ClCompile Include="Modules\Albeoris.Clr\GamePluginHost.Platform.ixx" />
         <ClCompile Include="dllmain.cpp" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="AsiNetLoader.runtimeconfig.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -53,10 +55,14 @@
 
     <PropertyGroup Condition="'$(Platform)'=='Win32'" Label="Configuration">
         <TargetName>$(TargetName)X86</TargetName>
+        <OutDir>..\Output\Plugin\x86\</OutDir>
+        <IntDir>obj\x86\</IntDir>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Platform)'=='x64'" Label="Configuration">
         <TargetName>$(TargetName)X64</TargetName>
+        <OutDir>..\Output\Plugin\x64\</OutDir>
+        <IntDir>obj\x64\</IntDir>
     </PropertyGroup>
 
     <PropertyGroup Label="Configuration">

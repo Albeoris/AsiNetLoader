@@ -6,21 +6,20 @@
 -->
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-    <!-- List of supported (Configuration|Platform) tuples -->
     <ItemGroup Label="ProjectConfigurations">
-        <ProjectConfiguration Include="Debug|Win32">
-            <Configuration>Debug</Configuration>
-            <Platform>Win32</Platform>
-        </ProjectConfiguration>
         <ProjectConfiguration Include="Release|Win32">
             <Configuration>Release</Configuration>
             <Platform>Win32</Platform>
         </ProjectConfiguration>
-        <ProjectConfiguration Include="Debug|x64">
-            <Configuration>Debug</Configuration>
+        <ProjectConfiguration Include="Release|x64">
+            <Configuration>Release</Configuration>
             <Platform>x64</Platform>
         </ProjectConfiguration>
-        <ProjectConfiguration Include="Release|x64">
+        <ProjectConfiguration Include="Debug|Win32">
+            <Configuration>Release</Configuration>
+            <Platform>Win32</Platform>
+        </ProjectConfiguration>
+        <ProjectConfiguration Include="Debug|x64">
             <Configuration>Release</Configuration>
             <Platform>x64</Platform>
         </ProjectConfiguration>
@@ -69,6 +68,18 @@
 
     <!-- Imports common C++ props (after setting core config props) -->
     <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+
+    <PropertyGroup Condition="'$(Platform)'=='Win32'" Label="Configuration">
+        <TargetName>$(TargetName)X86</TargetName>
+        <OutDir>..\Output\Plugin\x86\</OutDir>
+        <IntDir>obj\x86\</IntDir>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Platform)'=='x64'" Label="Configuration">
+        <TargetName>$(TargetName)X64</TargetName>
+        <OutDir>..\Output\Plugin\x64\</OutDir>
+        <IntDir>obj\x64\</IntDir>
+    </PropertyGroup>
 
     <!-- User-specific property sheets (optional, per platform) -->
     <ImportGroup Label="PropertySheets">
