@@ -46,14 +46,6 @@
         <OutDir>..\..\Output\Tests\x64\</OutDir>
         <IntDir>obj\x64\</IntDir>
     </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Platform)'=='Win32'" Label="Configuration">
-        <TargetName>$(TargetName)X86</TargetName>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Platform)'=='x64'" Label="Configuration">
-        <TargetName>$(TargetName)X64</TargetName>
-    </PropertyGroup>
     
     <!-- Common compiler/linker settings shared by x86/x64 -->
     <ItemDefinitionGroup>
