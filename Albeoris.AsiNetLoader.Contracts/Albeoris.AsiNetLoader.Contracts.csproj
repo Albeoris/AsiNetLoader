@@ -12,26 +12,5 @@
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     </PropertyGroup>
 
-    <!-- Copy to both x64 and x86 plugin folders -->
-    <Target Name="CopyToPluginFolders" AfterTargets="Build">
-        <PropertyGroup>
-            <PluginOutputX64>$(SolutionDir)Output\Plugin\x64\</PluginOutputX64>
-            <PluginOutputX86>$(SolutionDir)Output\Plugin\x86\</PluginOutputX86>
-        </PropertyGroup>
-        
-        <MakeDir Directories="$(PluginOutputX64)" />
-        <MakeDir Directories="$(PluginOutputX86)" />
-        
-        <ItemGroup>
-            <OutputFiles Include="$(OutDir)**\*.*" />
-        </ItemGroup>
-        
-        <Copy SourceFiles="@(OutputFiles)" 
-              DestinationFiles="@(OutputFiles->'$(PluginOutputX64)%(RecursiveDir)%(Filename)%(Extension)')" 
-              SkipUnchangedFiles="true" />
-              
-        <Copy SourceFiles="@(OutputFiles)" 
-              DestinationFiles="@(OutputFiles->'$(PluginOutputX86)%(RecursiveDir)%(Filename)%(Extension)')" 
-              SkipUnchangedFiles="true" />
-    </Target>
+    <Import Project="..\Build.targets" />
 </Project>
