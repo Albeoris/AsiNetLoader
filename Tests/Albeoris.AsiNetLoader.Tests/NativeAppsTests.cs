@@ -71,6 +71,8 @@ public class NativeAppsTests
         Assert.True(proc.HasExited, "Process did not exit within timeout");
         Assert.True(proc.ExitCode == 0, $"Process exited with code {proc.ExitCode}.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
         Assert.True(stdout.Contains($"Hello from app::PrintHello (cdecl) [{platform}]"), $"Process did not print hello message.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
+        
+        Assert.True(stdout.Contains("DllMain: DLL_PROCESS_ATTACH"), $"Process did not print DLL_PROCESS_ATTACH.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
     }
 
     private static ProcessStartInfo GetProcessStartInfo(String platform, String exeRelativePath)
