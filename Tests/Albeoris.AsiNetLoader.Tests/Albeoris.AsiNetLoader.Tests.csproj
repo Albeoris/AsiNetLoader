@@ -4,6 +4,9 @@
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
         <OutDir>..\..\Output\Tests\</OutDir>
+        
+        <!-- Include only English resources, exclude all localization folders -->
+        <SatelliteResourceLanguages>en-US</SatelliteResourceLanguages>
     </PropertyGroup>
 
     <ItemGroup>
