@@ -1,7 +1,7 @@
 ﻿export module Albeoris.DotNetRuntimeHost:WinAPI;
 
 import :Arguments;
-import :Exception;
+import :DotNetHostException;
 import :Types;
 import  <format>;
 import <Windows.h>;
@@ -21,7 +21,7 @@ namespace Albeoris::DotNetRuntimeHost
 
             HMODULE lib = ::LoadLibraryW(nullTerminatedPath);
             if (!lib)
-                throw Exception(std::format(L"{0} could not be found. {0} is required.", dllName));
+                throw DotNetHostException(std::format(L"{0} could not be found. {0} is required.", dllName));
             return lib;
         }
 
@@ -38,7 +38,7 @@ namespace Albeoris::DotNetRuntimeHost
             if (!result)
             {
                 const DWORD ec = ::GetLastError();
-                throw Exception(std::format("GetProcAddress failed for '{}' (err={})", procName, ec));
+                throw DotNetHostException(std::format("GetProcAddress failed for '{}' (err={})", procName, ec));
             }
 
             return reinterpret_cast<T>(result);
@@ -52,10 +52,10 @@ namespace Albeoris::DotNetRuntimeHost
             DWORD len = ::GetModuleFileNameW(lib, buffer, MAX_PATH);
 
             if (len == 0)
-                throw Exception("GetModuleFileNameW failed");
+                throw DotNetHostException("GetModuleFileNameW failed");
 
             if (len == MAX_PATH)
-                throw Exception("GetModuleFileNameW result is too long");
+                throw DotNetHostException("GetModuleFileNameW result is too long");
 
             return std::wstring(buffer, len);
         }

@@ -178,7 +178,7 @@
         <ClCompile Include="DotNetRuntimeHost\Internal\WinAPI.ixx" />
         <ClCompile Include="DotNetRuntimeHost\Internal\WindowsHost.ixx"/>
         <ClCompile Include="DotNetRuntimeHost\Internal\WindowsHostFactory.ixx"/>
-        <ClCompile Include="DotNetRuntimeHost\Public\Exception.ixx"/>
+        <ClCompile Include="DotNetRuntimeHost\Public\DotNetHostException.ixx"/>
         <ClCompile Include="DotNetRuntimeHost\Public\HostFactory.ixx" />
         <ClCompile Include="DotNetRuntimeHost\Public\IHost.ixx"/>
         <ClCompile Include="DotNetRuntimeHost\Public\Types.ixx"/>

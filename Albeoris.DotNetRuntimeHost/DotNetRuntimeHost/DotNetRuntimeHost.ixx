@@ -8,7 +8,7 @@ import :WinAPI;
 import :WindowsHost;
 import :WindowsHostFactory;
 
-export import :Exception;
+export import :DotNetHostException;
 export import :HostFactory;
 export import :IHost;
 export import :Types;

@@ -104,7 +104,7 @@ namespace GamePluginHost
                 initFunc();
                 return true;
             }
-            catch (const Exception& ex)
+            catch (const DotNetHostException& ex)
             {
                 std::string message = ex.what();
                 std::wstring wmessage(message.begin(), message.end());

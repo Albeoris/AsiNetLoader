@@ -22,5 +22,11 @@ export namespace Albeoris::DotNetRuntimeHost
         /// <returns>Function pointer to the specified method.</returns>
         /// <exception cref="HostFxrException">Thrown when loading fails.</exception>
         virtual void* LoadAssemblyAndGetFunctionPointer(const std::filesystem::path& assemblyPath, const std::wstring& typeName, const std::wstring& methodName) = 0;
+
+        /// <summary>
+        /// Gets the actual version of the .NET runtime that has been loaded.
+        /// </summary>
+        /// <returns>Runtime version string (e.g., "8.0.11").</returns>
+        virtual std::string GetRuntimeVersion() = 0;
     };
 }

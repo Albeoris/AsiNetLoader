@@ -5,6 +5,8 @@
 
 import Albeoris.DotNetRuntimeHost;
 
+using namespace Albeoris::DotNetRuntimeHost;
+
 #define ASI_NET_LOADER_WRITE_DEBUG_MESSAGES
 
 void WriteDebugMessage(const char* text)
@@ -12,6 +14,11 @@ void WriteDebugMessage(const char* text)
 #ifdef ASI_NET_LOADER_WRITE_DEBUG_MESSAGES
     std::cout << text << std::endl;
 #endif
+}
+
+void WriteDebugMessage(const std::string& text)
+{
+    WriteDebugMessage(text.c_str());
 }
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
@@ -27,9 +34,13 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
         {
             // Initialize .NET Runtime using HostFactory
             std::filesystem::path runtimeConfigPath = "AsiNetLoader.runtimeconfig.json";
-            auto host = Albeoris::DotNetRuntimeHost::HostFactory::CreateHost(runtimeConfigPath);
+            auto host = HostFactory::CreateHost(runtimeConfigPath);
             
             WriteDebugMessage("DllMain: .NET Runtime initialized successfully");
+            
+            // Get and display the actual runtime version that was loaded
+            auto runtimeVersion = host->GetRuntimeVersion();
+            WriteDebugMessage("DllMain: Loaded .NET Runtime version: " + runtimeVersion);
             
             // TODO: Load managed assembly and call methods
             // Example:
@@ -39,7 +50,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
             //     L"YourMethod"
             // );
         }
-        catch (const Albeoris::DotNetRuntimeHost::Exception& ex)
+        catch (const DotNetHostException& ex)
         {
             WriteDebugMessage("DllMain: Failed to initialize .NET Runtime");
             WriteDebugMessage(ex.what());

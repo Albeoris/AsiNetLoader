@@ -1,18 +1,18 @@
-﻿export module Albeoris.DotNetRuntimeHost:Exception;
+﻿export module Albeoris.DotNetRuntimeHost:DotNetHostException;
 
 import <stdexcept>;
 import <windows.h>;
 
 export namespace Albeoris::DotNetRuntimeHost
 {
-    struct Exception : std::runtime_error
+    struct DotNetHostException : std::runtime_error
     {
-        explicit Exception(const std::string& msg)
+        explicit DotNetHostException(const std::string& msg)
             : std::runtime_error(msg)
         {
         }
 
-        explicit Exception(const std::wstring& msg)
+        explicit DotNetHostException(const std::wstring& msg)
             : std::runtime_error(ToUtf8(msg))
         {
         }

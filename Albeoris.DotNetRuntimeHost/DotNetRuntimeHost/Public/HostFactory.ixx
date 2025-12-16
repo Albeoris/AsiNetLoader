@@ -1,6 +1,6 @@
 ﻿export module Albeoris.DotNetRuntimeHost:HostFactory;
 
-import :Exception;
+import :DotNetHostException;
 import :IHost;
 import :IHostFactory;
 import :Internals;
@@ -32,7 +32,7 @@ export namespace Albeoris::DotNetRuntimeHost
             }
             else
             {
-                throw Exception{"HostFactory::CreateHost is only supported on Windows"};
+                throw DotNetHostException{"HostFactory::CreateHost is only supported on Windows"};
             }
         }
     };
