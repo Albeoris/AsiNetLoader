@@ -68,7 +68,7 @@
     </Target>
 
     <!-- Build both x86 and x64 when building for any platform -->
-    <Target Name="BuildOtherPlatform" AfterTargets="Build" Condition="'$(BuildingInsideVisualStudio)' != 'true' OR '$(BuildProjectReferences)' == 'true'">
+    <Target Name="BuildOtherPlatform" AfterTargets="Build">
         <PropertyGroup>
             <OtherPlatform Condition="'$(Platform)' == 'Win32'">x64</OtherPlatform>
             <OtherPlatform Condition="'$(Platform)' == 'x64'">Win32</OtherPlatform>
