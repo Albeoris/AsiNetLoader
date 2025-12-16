@@ -1,30 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFramework>net10.0</TargetFramework>
-        <PlatformTarget>AnyCPU</PlatformTarget>
-        <Platforms>AnyCPU</Platforms>
-        <OutputType>Library</OutputType>
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         
-        <!-- Build output to temporary location -->
-        <!-- <OutDir>Output\</OutDir> -->
+        <!-- This is a contracts library - should be loaded in Default ALC -->
+        <OutputType>Library</OutputType>
         
-        <!-- Disable default output path behavior -->
+        <!-- Copy to plugin folders so it's available for plugins -->
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
-        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
-        
-        <!-- Generate runtimeconfig.json with custom name -->
-        <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-        <RollForward>LatestMajor</RollForward>
     </PropertyGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\Albeoris.AsiNetLoader.Contracts\Albeoris.AsiNetLoader.Contracts.csproj" />
-    </ItemGroup>
-
-    <!-- Copy output to both x64 and x86 plugin folders after build -->
+    <!-- Copy to both x64 and x86 plugin folders -->
     <Target Name="CopyToPluginFolders" AfterTargets="Build">
         <PropertyGroup>
             <PluginOutputX64>$(SolutionDir)Output\Plugin\x64\</PluginOutputX64>
@@ -45,8 +33,5 @@
         <Copy SourceFiles="@(OutputFiles)" 
               DestinationFiles="@(OutputFiles->'$(PluginOutputX86)%(RecursiveDir)%(Filename)%(Extension)')" 
               SkipUnchangedFiles="true" />
-              
-        <Message Text="Copied plugin output to $(PluginOutputX64)" Importance="high" />
-        <Message Text="Copied plugin output to $(PluginOutputX86)" Importance="high" />
     </Target>
 </Project>
