@@ -18,6 +18,7 @@
         <Configuration Solution="Debug|x64" Project="Release|x64" />
     </Project>
   </Folder>
+  <Project Path="Albeoris.AsiNetLoader.Managed\Albeoris.AsiNetLoader.Managed.csproj" />
   <Project Path="Albeoris.AsiNetLoader\Albeoris.AsiNetLoader.vcxproj">
       <BuildType Project="Release" />
       <Configuration Solution="Debug|Win32" Project="Release|Win32" />

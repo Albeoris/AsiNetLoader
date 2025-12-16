@@ -20,12 +20,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="AsiNetLoader.runtimeconfig.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
-
-    <ItemGroup>
         <ProjectReference Include="..\Albeoris.DotNetRuntimeHost\Albeoris.DotNetRuntimeHost.vcxproj">
             <Project>{aa9b1fa4-6a00-48c7-9609-49f0327edbb9}</Project>
             <Name>Albeoris.DotNetRuntimeHost</Name>

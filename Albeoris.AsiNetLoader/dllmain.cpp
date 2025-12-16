@@ -33,7 +33,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
         try
         {
             // Initialize .NET Runtime using HostFactory
-            std::filesystem::path runtimeConfigPath = "AsiNetLoader.runtimeconfig.json";
+            std::filesystem::path runtimeConfigPath = "Albeoris.AsiNetLoader.Managed.runtimeconfig.json";
             auto host = HostFactory::CreateHost(runtimeConfigPath);
             
             WriteDebugMessage("DllMain: .NET Runtime initialized successfully");
