@@ -23,11 +23,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Update="ThirdParty\UltimateASILoader\8.7.0\x64\dinput8.dll">
+        <None Update="ThirdParty\UltimateASILoader\9.5.0\x64\dinput8.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <TargetPath>x64\dinput8.dll</TargetPath>
         </None>
-        <None Update="ThirdParty\UltimateASILoader\8.7.0\x86\dinput8.dll">
+        <None Update="ThirdParty\UltimateASILoader\9.5.0\x86\dinput8.dll">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
             <TargetPath>x86\dinput8.dll</TargetPath>
         </None>
