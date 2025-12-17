@@ -1,6 +1,7 @@
 ﻿export module Albeoris.DotNetRuntimeHost:IHost;
 
 import <filesystem>;
+import <map>;
 import <string>;
 
 export namespace Albeoris::DotNetRuntimeHost
@@ -28,5 +29,11 @@ export namespace Albeoris::DotNetRuntimeHost
         /// </summary>
         /// <returns>Runtime version string (e.g., "8.0.11").</returns>
         virtual std::string GetRuntimeVersion() = 0;
+
+        /// <summary>
+        /// Gets all runtime properties.
+        /// </summary>
+        /// <returns>Map of property names to values.</returns>
+        virtual std::map<std::wstring, std::wstring> GetRuntimeProperties() = 0;
     };
 }

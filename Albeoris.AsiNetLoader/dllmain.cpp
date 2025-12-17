@@ -45,6 +45,14 @@ DWORD WINAPI InitializeRuntimeThread(LPVOID lpParam)
         
         WriteDebugMessage("InitializeRuntimeThread: .NET Runtime initialized successfully");
         
+        // Get and log all runtime properties
+        auto properties = host->GetRuntimeProperties();
+        WriteDebugMessage("InitializeRuntimeThread: Runtime properties count: " + std::to_string(properties.size()));
+        for (const auto& [key, value] : properties)
+        {
+            std::wcout << L"  " << key << L" = " << value << std::endl;
+        }
+        
         // Get and display the actual runtime version that was loaded
         auto runtimeVersion = host->GetRuntimeVersion();
         WriteDebugMessage("InitializeRuntimeThread: Loaded .NET Runtime version: " + runtimeVersion);
