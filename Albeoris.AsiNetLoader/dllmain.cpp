@@ -32,8 +32,19 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
         
         try
         {
-            // Initialize .NET Runtime using HostFactory
-            std::filesystem::path runtimeConfigPath = "Albeoris.AsiNetLoader.Managed.runtimeconfig.json";
+            // Get the directory where this DLL is located
+            wchar_t dllPath[MAX_PATH];
+            GetModuleFileNameW(hModule, dllPath, MAX_PATH);
+            std::filesystem::path dllDirectory = std::filesystem::path(dllPath).parent_path();
+            
+            // Initialize .NET Runtime using HostFactory with absolute path
+            std::filesystem::path runtimeConfigPath = dllDirectory / "Albeoris.AsiNetLoader.Managed.runtimeconfig.json";
+            
+            // Validate that runtime config file exists
+            if (!std::filesystem::exists(runtimeConfigPath))
+                throw DotNetHostException("Runtime configuration file not found: " + runtimeConfigPath.string());
+            
+            WriteDebugMessage("DllMain: Initializing .NET Runtime: " + runtimeConfigPath.string());
             auto host = HostFactory::CreateHost(runtimeConfigPath);
             
             WriteDebugMessage("DllMain: .NET Runtime initialized successfully");
