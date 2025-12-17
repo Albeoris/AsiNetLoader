@@ -175,6 +175,7 @@
         <ClCompile Include="DotNetRuntimeHost\Internal\Arguments.ixx"/>
         <ClCompile Include="DotNetRuntimeHost\Internal\IHostFactory.ixx"/>
         <ClCompile Include="DotNetRuntimeHost\Internal\Internals.ixx"/>
+        <ClCompile Include="DotNetRuntimeHost\Internal\HostFxrErrorCodes.ixx"/>
         <ClCompile Include="DotNetRuntimeHost\Internal\WinAPI.ixx" />
         <ClCompile Include="DotNetRuntimeHost\Internal\WindowsHost.ixx"/>
         <ClCompile Include="DotNetRuntimeHost\Internal\WindowsHostFactory.ixx"/>

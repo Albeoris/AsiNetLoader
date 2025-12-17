@@ -7,6 +7,7 @@ import <string>;
 import <Windows.h>;
 
 import :DotNetHostException;
+import :HostFxrErrorCodes;
 import :IHost;
 import :IHostFactory;
 import :Types;
@@ -152,29 +153,29 @@ namespace Albeoris::DotNetRuntimeHost
             {
                 if (hostContext)
                     _close(hostContext);
-                throw DotNetHostException(std::format("hostfxr_initialize_for_runtime_config failed with error code: {:#x}", rc));
+                throw DotNetHostException(std::format("hostfxr_initialize_for_runtime_config failed: {}", HostFxrErrorCodes::GetFormattedError(rc)));
             }
+
+            // Get runtime version BEFORE getting delegate (context state requirement)
+            const wchar_t* versionValue = nullptr;
+            rc = _getRuntimePropertyValue(hostContext, L"FX_VERSION", &versionValue);
+            if (rc != 0 || versionValue == nullptr)
+            {
+                _close(hostContext);
+                throw DotNetHostException(std::format("Failed to get runtime version property: {}", HostFxrErrorCodes::GetFormattedError(rc)));
+            }
+            // Convert to UTF-8 immediately
+            _runtimeVersion = WStringToUTF8(versionValue);
 
             void* loadFunc = nullptr;
             rc = _getRuntime(hostContext, HostFxr::LOAD_ASSEMBLY_AND_GET_FUNCTION_POINTER_DELEGATE_TYPE, &loadFunc);
             if (rc != 0 || loadFunc == nullptr)
             {
                 _close(hostContext);
-                throw DotNetHostException(std::format("hostfxr_get_runtime_delegate failed with error code: {:#x}", rc));
+                throw DotNetHostException(std::format("hostfxr_get_runtime_delegate failed: {}", HostFxrErrorCodes::GetFormattedError(rc)));
             }
 
             _loadAssemblyAndGetPtr = reinterpret_cast<HostFxr::LoadAssemblyAndGetFunctionPointerDelegate>(loadFunc);
-
-            // Get runtime version before closing the context
-            const wchar_t* versionValue = nullptr;
-            rc = _getRuntimePropertyValue(hostContext, L"FX_VERSION", &versionValue);
-            if (rc != 0 || versionValue == nullptr)
-            {
-                _close(hostContext);
-                throw DotNetHostException(std::format("Failed to get runtime version property, error code: {:#x}", rc));
-            }
-            // Convert to UTF-8 immediately
-            _runtimeVersion = WStringToUTF8(versionValue);
 
             _close(hostContext);
             _runtimeInitialized = true;
