@@ -2,6 +2,7 @@
 
 import <cstdint>;
 import <filesystem>;
+import <format>;
 import <string>;
 import <Windows.h>;
 
@@ -39,11 +40,68 @@ namespace Albeoris::DotNetRuntimeHost
         HostFxr::GetRuntimePropertyValueDelegate _getRuntimePropertyValue;
         HostFxr::CloseDelegate _close;
 
+    private:
+        /// <summary>
+        /// Finds the path to hostfxr.dll in the .NET installation.
+        /// </summary>
+        /// <returns>Full path to hostfxr.dll</returns>
+        static std::filesystem::path FindHostFxrPath()
+        {
+            // Try to get DOTNET_ROOT environment variable first
+            wchar_t dotnetRoot[MAX_PATH];
+            DWORD result = GetEnvironmentVariableW(L"DOTNET_ROOT", dotnetRoot, MAX_PATH);
+            
+            std::filesystem::path basePath;
+            if (result > 0 && result < MAX_PATH)
+            {
+                basePath = dotnetRoot;
+            }
+            else
+            {
+                // Default installation path
+                basePath = L"C:\\Program Files\\dotnet";
+            }
+            
+            // Look for the latest version of hostfxr
+            std::filesystem::path fxrPath = basePath / "host" / "fxr";
+            if (!std::filesystem::exists(fxrPath))
+            {
+                throw DotNetHostException(std::format(L"Could not find hostfxr directory at: {}", fxrPath.wstring()));
+            }
+            
+            // Find the latest version directory
+            std::filesystem::path latestVersion;
+            for (const auto& entry : std::filesystem::directory_iterator(fxrPath))
+            {
+                if (entry.is_directory())
+                {
+                    if (latestVersion.empty() || entry.path().filename() > latestVersion.filename())
+                    {
+                        latestVersion = entry.path();
+                    }
+                }
+            }
+            
+            if (latestVersion.empty())
+            {
+                throw DotNetHostException(L"No hostfxr version found in .NET installation");
+            }
+            
+            std::filesystem::path hostfxrDll = latestVersion / "hostfxr.dll";
+            if (!std::filesystem::exists(hostfxrDll))
+            {
+                throw DotNetHostException(std::format(L"hostfxr.dll not found at: {}", hostfxrDll.wstring()));
+            }
+            
+            return hostfxrDll;
+        }
+
     public:
         explicit WindowsHost(const std::filesystem::path& runtimeConfigPath)
         {
-            // Load hostfxr.dll
-            HMODULE lib = WinAPI::LoadLibrary(L"hostfxr.dll");
+            // Find and load hostfxr.dll with full path
+            std::filesystem::path hostfxrPath = FindHostFxrPath();
+            HMODULE lib = WinAPI::LoadLibrary(hostfxrPath.wstring());
             _initializeForRuntimeConfig = WinAPI::GetProcAddress<HostFxr::InitializeForRuntimeConfigDelegate>(lib, "hostfxr_initialize_for_runtime_config");
             _getRuntime = WinAPI::GetProcAddress<HostFxr::GetRuntimeDelegate>(lib, "hostfxr_get_runtime_delegate");
             _getRuntimePropertyValue = WinAPI::GetProcAddress<HostFxr::GetRuntimePropertyValueDelegate>(lib, "hostfxr_get_runtime_property_value");
