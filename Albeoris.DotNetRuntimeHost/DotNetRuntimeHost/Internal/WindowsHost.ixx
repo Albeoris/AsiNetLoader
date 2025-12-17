@@ -1,5 +1,6 @@
 ﻿export module Albeoris.DotNetRuntimeHost:WindowsHost;
 
+import <cstdint>;
 import <filesystem>;
 import <string>;
 import <Windows.h>;
@@ -18,11 +19,11 @@ namespace Albeoris::DotNetRuntimeHost
         static constexpr int LOAD_ASSEMBLY_AND_GET_FUNCTION_POINTER_DELEGATE_TYPE = 3;
         
         using RuntimeHandle = void*;
-        using InitializeForRuntimeConfigDelegate = int(*)(const wchar_t* runtimeConfigPath, const void* parameters, /*out*/ RuntimeHandle* handle);
-        using GetRuntimeDelegate = int(*)(RuntimeHandle handle, int delegate_type, /*out*/ void** result);
-        using GetRuntimePropertyValueDelegate = int(*)(RuntimeHandle handle, const wchar_t* name, /*out*/ const wchar_t** value);
-        using CloseDelegate = int(*)(RuntimeHandle handle);
-        using LoadAssemblyAndGetFunctionPointerDelegate = int(*)(const wchar_t* assemblyPath, const wchar_t* typeName, const wchar_t* methodName, const wchar_t* delegateTypeName, void* reserved, /*out*/ void** result);
+        using InitializeForRuntimeConfigDelegate = uint32_t(*)(const wchar_t* runtimeConfigPath, const void* parameters, /*out*/ RuntimeHandle* handle);
+        using GetRuntimeDelegate = uint32_t(*)(RuntimeHandle handle, int delegate_type, /*out*/ void** result);
+        using GetRuntimePropertyValueDelegate = uint32_t(*)(RuntimeHandle handle, const wchar_t* name, /*out*/ const wchar_t** value);
+        using CloseDelegate = uint32_t(*)(RuntimeHandle handle);
+        using LoadAssemblyAndGetFunctionPointerDelegate = uint32_t(*)(const wchar_t* assemblyPath, const wchar_t* typeName, const wchar_t* methodName, const wchar_t* delegateTypeName, void* reserved, /*out*/ void** result);
     };
     
     /// <summary>
@@ -88,7 +89,7 @@ namespace Albeoris::DotNetRuntimeHost
                 return;
 
             HostFxr::RuntimeHandle hostContext = nullptr;
-            int rc = _initializeForRuntimeConfig(runtimeConfigPath.native().c_str(), nullptr, &hostContext);
+            uint32_t rc = _initializeForRuntimeConfig(runtimeConfigPath.native().c_str(), nullptr, &hostContext);
             if (rc != 0)
             {
                 if (hostContext)
@@ -131,7 +132,7 @@ namespace Albeoris::DotNetRuntimeHost
             auto delegate_type_name = (const wchar_t*)-1;
 
             void* funcPtr = nullptr;
-            int rc = _loadAssemblyAndGetPtr(
+            uint32_t rc = _loadAssemblyAndGetPtr(
                 assemblyPath.wstring().c_str(),
                 typeName.c_str(),
                 methodName.c_str(),

@@ -25,20 +25,4 @@
         <Message Text="Copied plugin output to $(PluginOutputX86)" Importance="high" />
     </Target>
 
-    <!-- Clean all Output folder contents -->
-    <Target Name="CleanOutputFolder" AfterTargets="Clean" Condition="'$(SolutionDir)' != ''">
-        <PropertyGroup>
-            <OutputFolder>$(SolutionDir)Output\</OutputFolder>
-        </PropertyGroup>
-        
-        <ItemGroup>
-            <OutputFolderFiles Include="$(OutputFolder)**\*.*" />
-            <OutputFolderDirs Include="$([System.IO.Directory]::GetDirectories('$(OutputFolder)', '*', System.IO.SearchOption.AllDirectories))" />
-        </ItemGroup>
-        
-        <Delete Files="@(OutputFolderFiles)" ContinueOnError="true" />
-        <RemoveDir Directories="@(OutputFolderDirs)" ContinueOnError="true" />
-        
-        <Message Text="Cleaned Output folder: $(OutputFolder)" Importance="high" />
-    </Target>
 </Project>

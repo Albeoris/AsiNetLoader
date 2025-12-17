@@ -67,20 +67,20 @@
         <MakeDir Directories="$(OutDir)" />
     </Target>
 
-    <!-- Build both x86 and x64 when building for any platform -->
-    <Target Name="BuildOtherPlatform" AfterTargets="Build">
-        <PropertyGroup>
-            <OtherPlatform Condition="'$(Platform)' == 'Win32'">x64</OtherPlatform>
-            <OtherPlatform Condition="'$(Platform)' == 'x64'">Win32</OtherPlatform>
-        </PropertyGroup>
-        
-        <Message Text="Building $(MSBuildProjectName) for $(OtherPlatform) platform..." Importance="high" />
-        
-        <MSBuild Projects="$(MSBuildProjectFullPath)"
-                 Targets="Build"
-                 Properties="Platform=$(OtherPlatform);Configuration=$(Configuration)"
-                 BuildInParallel="false"
-                 StopOnFirstFailure="true" />
-    </Target>
+<!--    &lt;!&ndash; Build both x86 and x64 when building for any platform &ndash;&gt;-->
+<!--    <Target Name="BuildOtherPlatform" AfterTargets="Build">-->
+<!--        <PropertyGroup>-->
+<!--            <OtherPlatform Condition="'$(Platform)' == 'Win32'">x64</OtherPlatform>-->
+<!--            <OtherPlatform Condition="'$(Platform)' == 'x64'">Win32</OtherPlatform>-->
+<!--        </PropertyGroup>-->
+<!--        -->
+<!--        <Message Text="Building $(MSBuildProjectName) for $(OtherPlatform) platform..." Importance="high" />-->
+<!--        -->
+<!--        <MSBuild Projects="$(MSBuildProjectFullPath)"-->
+<!--                 Targets="Build"-->
+<!--                 Properties="Platform=$(OtherPlatform);Configuration=$(Configuration)"-->
+<!--                 BuildInParallel="false"-->
+<!--                 StopOnFirstFailure="true" />-->
+<!--    </Target>-->
 
 </Project>
