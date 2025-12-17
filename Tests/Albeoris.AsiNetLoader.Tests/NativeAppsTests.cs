@@ -10,32 +10,30 @@ public class NativeAppsTests
     [Fact(DisplayName = "Run x64 native test app")]
     public void Run_X64_Native_App()
     {
-        RunAndAssertExitCodeZero("x64", "Albeoris.TestNativeAppX64.exe");
+        RunAndAssertExitCodeZero(TestProcessContext.CreateX64());
     }
 
     [Fact(DisplayName = "Run x86 native test app")]
     public void Run_X86_Native_App()
     {
-        RunAndAssertExitCodeZero("x86", "Albeoris.TestNativeAppX86.exe");
+        RunAndAssertExitCodeZero(TestProcessContext.CreateX86());
     }
     
     [Fact(DisplayName = "Hook x64 native test app")]
     public void Hook_X64_Native_App()
     {
-        HookAndAssertExitCodeZero("x64", "Albeoris.TestNativeAppX64.exe");
+        HookAndAssertExitCodeZero(TestProcessContext.CreateX64());
     }
 
     [Fact(DisplayName = "Hook x86 native test app")]
     public void Hook_X86_Native_App()
     {
-        HookAndAssertExitCodeZero("x86", "Albeoris.TestNativeAppX86.exe");
+        HookAndAssertExitCodeZero(TestProcessContext.CreateX86());
     }
 
-    private static void RunAndAssertExitCodeZero(String platform, String exeRelativePath)
+    private static void RunAndAssertExitCodeZero(TestProcessContext ctx)
     {
-        ProcessStartInfo psi = GetProcessStartInfo(platform, exeRelativePath);
-
-        using Process proc = Process.Start(psi);
+        using Process proc = Process.Start(ctx.StartInfo);
         Assert.NotNull(proc);
         
         String stdout = proc.StandardOutput.ReadToEnd();
@@ -44,59 +42,55 @@ public class NativeAppsTests
 
         Assert.True(proc.HasExited, "Process did not exit within timeout");
         Assert.True(proc.ExitCode == 0, $"Process exited with code {proc.ExitCode}.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
-        Assert.True(stdout.Contains($"Hello from app::PrintHello (cdecl) [{platform}]"), $"Process did not print hello message.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
+        Assert.True(stdout.Contains($"Hello from app::PrintHello (cdecl) [{ctx.Platform}]"), $"Process did not print hello message.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
+
+        ctx.StdOut = stdout;
+        ctx.StdErr = stderr;
     }
     
-    private static void HookAndAssertExitCodeZero(String platform, String exeRelativePath)
+    private static void HookAndAssertExitCodeZero(TestProcessContext ctx)
     {
-        ProcessStartInfo psi = GetProcessStartInfo(platform, exeRelativePath);
-        String workingDirectory = Path.GetDirectoryName(psi.FileName);
+        String workingDirectory = Path.GetDirectoryName(ctx.StartInfo.FileName);
         Assert.NotNull(workingDirectory);
 
         String pluginsFolder = Path.Combine(workingDirectory, "Plugins");
-        Directory.CreateDirectory(pluginsFolder);
+        String sourcePluginFolder = Path.GetFullPath(Path.Combine(workingDirectory, "..", "..", "Plugin", ctx.Platform));
+        Assert.True(Directory.Exists(sourcePluginFolder), $"Plugin folder not found: {sourcePluginFolder}");
         
-        String targetPluginPath = Path.Combine(pluginsFolder, $"Albeoris.AsiNetLoader{platform}.asi");
-        String sourcePluginPath = Path.GetFullPath(Path.Combine(workingDirectory, "..", "..", "Plugin", platform, $"Albeoris.AsiNetLoader{platform}.asi"));
-        Assert.True(File.Exists(sourcePluginPath), $"Plugin not found: {sourcePluginPath}");
-        File.Copy(sourcePluginPath, targetPluginPath, overwrite: true);
-        
-        using Process proc = Process.Start(psi);
-        Assert.NotNull(proc);
-        
-        String stdout = proc.StandardOutput.ReadToEnd();
-        String stderr = proc.StandardError.ReadToEnd();
-        proc.WaitForExit(30_000);
+        CreateJunctionPoint(pluginsFolder, sourcePluginFolder);
 
-        Assert.True(proc.HasExited, "Process did not exit within timeout");
-        Assert.True(proc.ExitCode == 0, $"Process exited with code {proc.ExitCode}.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
-        Assert.True(stdout.Contains($"Hello from app::PrintHello (cdecl) [{platform}]"), $"Process did not print hello message.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
-        
-        Assert.True(stdout.Contains("DllMain: DLL_PROCESS_ATTACH"), $"Process did not print DLL_PROCESS_ATTACH.\nSTDOUT:\n{stdout}\nSTDERR:\n{stderr}");
+        RunAndAssertExitCodeZero(ctx);
+
+        Assert.True(ctx.StdOut.Contains("DllMain: DLL_PROCESS_ATTACH"), $"Process did not print DLL_PROCESS_ATTACH.\nSTDOUT:\n{ctx.StdOut}\nSTDERR:\n{ctx.StdErr}");
     }
 
-    private static ProcessStartInfo GetProcessStartInfo(String platform, String exeRelativePath)
+    private static void CreateJunctionPoint(String sourceDirectory, String targetPath)
     {
-        String outputDir = GetOutputFolder();
-        String exePath = Path.Combine(outputDir, platform, exeRelativePath);
-        Assert.True(File.Exists(exePath), $"Executable not found: {exePath}");
-
-        ProcessStartInfo psi = new ProcessStartInfo
+        // Remove existing Plugins folder/link if exists
+        if (Directory.Exists(sourceDirectory))
         {
-            FileName = exePath,
-            WorkingDirectory = Path.GetDirectoryName(exePath)!,
+            if (Directory.ResolveLinkTarget(sourceDirectory, returnFinalTarget: false) != null)
+                Directory.Delete(sourceDirectory, recursive: false);
+            else
+                Directory.Delete(sourceDirectory, recursive: true);
+        }
+        
+        // Create junction using mklink command (doesn't require admin rights)
+        ProcessStartInfo mklinkPsi = new ProcessStartInfo
+        {
+            FileName = "cmd.exe",
+            Arguments = $"/c mklink /J \"{sourceDirectory}\" \"{targetPath}\"",
             UseShellExecute = false,
             RedirectStandardOutput = true,
             RedirectStandardError = true,
             CreateNoWindow = true
         };
-        return psi;
-    }
-
-    private static String GetOutputFolder()
-    {
-        // Tests project OutDir points to ..\..\Output\Tests\
-        // The native apps are expected in subfolders x64/ and x86/ relative to that.
-        return AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        
+        using (Process mklinkProc = Process.Start(mklinkPsi))
+        {
+            Assert.NotNull(mklinkProc);
+            mklinkProc.WaitForExit();
+            Assert.True(mklinkProc.ExitCode == 0, $"Failed to create junction: {mklinkProc.StandardError.ReadToEnd()}");
+        }
     }
 }
