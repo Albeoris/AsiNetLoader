@@ -33,8 +33,14 @@ if not exist "%MSBUILD%" (
 echo [INFO] Using MSBuild: "%MSBUILD%"
 
 rem Build with sensible defaults; user-supplied args appended (and override if repeated)
+rem By default, enable restore so RID-specific assets are present.
+set "RESTORE_ARG=/restore"
+echo %ARGS% | findstr /I /C:"/restore" >nul && set "RESTORE_ARG="
+echo %ARGS% | findstr /I /C:"/t:Restore" >nul && set "RESTORE_ARG="
+echo %ARGS% | findstr /I /C:"/target:Restore" >nul && set "RESTORE_ARG="
+
 echo [INFO] Building filter with MSBuild...
-"%MSBUILD%" %ARGS%
+"%MSBUILD%" %RESTORE_ARG% %ARGS%
 set "EXITCODE=%ERRORLEVEL%"
 
 if %EXITCODE% NEQ 0 (

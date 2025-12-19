@@ -84,30 +84,29 @@ namespace Albeoris::DotNetRuntimeHost
     public:
         explicit WindowsHost(const std::filesystem::path& runtimeConfigPath)
         {
+            HMODULE hostfxrModule = nullptr;
+            
             // Check if hostfxr.dll is already loaded in the process
             // This can happen if another .NET runtime version is already initialized
             HMODULE existingHostfxr = GetModuleHandleW(L"hostfxr.dll");
             if (existingHostfxr != nullptr)
             {
                 // hostfxr is already loaded, we can use the existing one
-                // Load function pointers from the already-loaded module
-                _initializeForRuntimeConfig = WinAPI::GetProcAddress<HostFxr::InitializeForRuntimeConfigDelegate>(existingHostfxr, "hostfxr_initialize_for_runtime_config");
-                _getRuntime = WinAPI::GetProcAddress<HostFxr::GetRuntimeDelegate>(existingHostfxr, "hostfxr_get_runtime_delegate");
-                _getRuntimePropertyValue = WinAPI::GetProcAddress<HostFxr::GetRuntimePropertyValueDelegate>(existingHostfxr, "hostfxr_get_runtime_property_value");
-                _getRuntimeProperties = WinAPI::GetProcAddress<HostFxr::GetRuntimePropertiesDelegate>(existingHostfxr, "hostfxr_get_runtime_properties");
-                _close = WinAPI::GetProcAddress<HostFxr::CloseDelegate>(existingHostfxr, "hostfxr_close");
+                hostfxrModule = existingHostfxr;
             }
             else
             {
                 // Find and load hostfxr.dll with full path
                 std::filesystem::path hostfxrPath = FindHostFxrPath();
-                HMODULE lib = WinAPI::LoadLibrary(hostfxrPath.wstring());
-                _initializeForRuntimeConfig = WinAPI::GetProcAddress<HostFxr::InitializeForRuntimeConfigDelegate>(lib, "hostfxr_initialize_for_runtime_config");
-                _getRuntime = WinAPI::GetProcAddress<HostFxr::GetRuntimeDelegate>(lib, "hostfxr_get_runtime_delegate");
-                _getRuntimePropertyValue = WinAPI::GetProcAddress<HostFxr::GetRuntimePropertyValueDelegate>(lib, "hostfxr_get_runtime_property_value");
-                _getRuntimeProperties = WinAPI::GetProcAddress<HostFxr::GetRuntimePropertiesDelegate>(lib, "hostfxr_get_runtime_properties");
-                _close = WinAPI::GetProcAddress<HostFxr::CloseDelegate>(lib, "hostfxr_close");
+                hostfxrModule = WinAPI::LoadLibrary(hostfxrPath.wstring());
             }
+            
+            // Load function pointers from hostfxr.dll
+            _initializeForRuntimeConfig = WinAPI::GetProcAddress<HostFxr::InitializeForRuntimeConfigDelegate>(hostfxrModule, "hostfxr_initialize_for_runtime_config");
+            _getRuntime = WinAPI::GetProcAddress<HostFxr::GetRuntimeDelegate>(hostfxrModule, "hostfxr_get_runtime_delegate");
+            _getRuntimePropertyValue = WinAPI::GetProcAddress<HostFxr::GetRuntimePropertyValueDelegate>(hostfxrModule, "hostfxr_get_runtime_property_value");
+            _getRuntimeProperties = WinAPI::GetProcAddress<HostFxr::GetRuntimePropertiesDelegate>(hostfxrModule, "hostfxr_get_runtime_properties");
+            _close = WinAPI::GetProcAddress<HostFxr::CloseDelegate>(hostfxrModule, "hostfxr_close");
 
             // Initialize runtime (will handle already initialized runtime gracefully)
             InitializeRuntime(runtimeConfigPath);
@@ -141,6 +140,7 @@ namespace Albeoris::DotNetRuntimeHost
         /// Initializes the .NET runtime with the specified configuration.
         /// </summary>
         /// <param name="runtimeConfigPath">Path to the runtime configuration file.</param>
+        /// <param name="hostfxrAlreadyLoaded">True if hostfxr.dll was already loaded in the process.</param>
         /// <exception cref="HostFxrException">Thrown when initialization fails.</exception>
         void InitializeRuntime(const std::filesystem::path& runtimeConfigPath)
         {
@@ -151,23 +151,24 @@ namespace Albeoris::DotNetRuntimeHost
             if (rc == HostFxrErrorCodes::HostIncompatibleConfig)
             {
                 // Runtime is already initialized with a different/incompatible version
-                // We cannot initialize a new runtime context, but we can still try to get
-                // the delegate from the existing runtime by passing nullptr as context
-                _runtimeVersion = "Existing runtime (incompatible version already loaded)";
+                // This means the .runtimeconfig.json requests a framework version that's incompatible
+                // with the already loaded runtime in the process.
                 
-                // Try to get the delegate for loading assemblies from the existing runtime
-                void* loadFunc = nullptr;
-                rc = _getRuntime(nullptr, HostFxr::LOAD_ASSEMBLY_AND_GET_FUNCTION_POINTER_DELEGATE_TYPE, &loadFunc);
-                if (rc == 0 && loadFunc != nullptr)
-                {
-                    _loadAssemblyAndGetPtr = reinterpret_cast<HostFxr::LoadAssemblyAndGetFunctionPointerDelegate>(loadFunc);
-                }
-                else
-                {
-                    // Failed to get the delegate from existing runtime
-                    throw DotNetHostException(std::format("Failed to get runtime delegate from existing runtime: {}", HostFxrErrorCodes::GetFormattedError(rc)));
-                }
-                return;
+                if (hostContext)
+                    _close(hostContext);
+                
+                throw DotNetHostException(
+                    "A .NET runtime is already loaded in this process with an incompatible version. "
+                    "The application requires a different version than what's currently running. "
+                    "This can happen when:\n"
+                    "1. A .NET application has already started and loaded a specific runtime version\n"
+                    "2. You're trying to load a component/plugin that requires a different major version\n"
+                    "\n"
+                    "Solutions:\n"
+                    "- Ensure your component targets the same or lower .NET version (e.g., net8.0)\n"
+                    "- Configure RollForward=LatestMajor in your .runtimeconfig.json\n"
+                    "- Start your component before the main application loads its runtime"
+                );
             }
             
             // Check for other errors

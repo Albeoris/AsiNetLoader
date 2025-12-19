@@ -29,7 +29,7 @@ namespace Albeoris::DotNetRuntimeHost
         }
 
         template <typename T>
-        [[nodiscard]] static T GetProcAddress(HMODULE lib, const char* procName)
+        [[nodiscard]] static T GetProcAddress(HMODULE lib, const char* procName, bool throwOnError = true)
         {
             static_assert(std::is_pointer_v<T> && std::is_function_v<std::remove_pointer_t<T>>,
                           "T must be a function pointer type");
@@ -40,8 +40,12 @@ namespace Albeoris::DotNetRuntimeHost
             FARPROC result = ::GetProcAddress(lib, procName);
             if (!result)
             {
-                const DWORD ec = ::GetLastError();
-                throw DotNetHostException(std::format("GetProcAddress failed for '{}' (err={})", procName, ec));
+                if (throwOnError)
+                {
+                    const DWORD ec = ::GetLastError();
+                    throw DotNetHostException(std::format("GetProcAddress failed for '{}' (err={})", procName, ec));
+                }
+                return nullptr;
             }
 
             return reinterpret_cast<T>(result);

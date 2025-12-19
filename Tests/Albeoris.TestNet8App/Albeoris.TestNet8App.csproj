@@ -13,12 +13,18 @@
 
   <PropertyGroup Condition=" '$(Platform)' == 'x86' ">
     <OutDir>..\..\Output\Tests\x86\</OutDir>
+    <IntermediateOutputPath>obj\x86\$(Configuration)\</IntermediateOutputPath>
     <AssemblyName>Albeoris.TestNet8AppX86</AssemblyName>
+    <PlatformTarget>x86</PlatformTarget>
+    <RuntimeIdentifier>win-x86</RuntimeIdentifier>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Platform)' == 'x64' ">
     <OutDir>..\..\Output\Tests\x64\</OutDir>
+    <IntermediateOutputPath>obj\x64\$(Configuration)\</IntermediateOutputPath>
     <AssemblyName>Albeoris.TestNet8AppX64</AssemblyName>
+    <PlatformTarget>x64</PlatformTarget>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
 
 </Project>
