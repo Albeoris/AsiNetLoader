@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Albeoris.TestNet8App
+namespace Albeoris.TestNetApp
 {
     internal class Program
     {
