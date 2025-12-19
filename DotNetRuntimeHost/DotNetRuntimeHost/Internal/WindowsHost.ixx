@@ -2,6 +2,8 @@
 
 // Include nethost.h from NuGet package Microsoft.NETCore.DotNetAppHost
 #include <nethost.h>
+#include <coreclr_delegates.h>
+#include <hostfxr.h>
 
 export module DotNetRuntimeHost:WindowsHost;
 
@@ -23,20 +25,6 @@ import :WinAPI;
 
 namespace DotNetRuntimeHost
 {
-    // Define function pointer types for the hostfxr functions
-    struct HostFxr
-    {
-        static constexpr int LOAD_ASSEMBLY_AND_GET_FUNCTION_POINTER_DELEGATE_TYPE = 3;
-        
-        using RuntimeHandle = void*;
-        using InitializeForRuntimeConfigDelegate = uint32_t(*)(const wchar_t* runtimeConfigPath, const void* parameters, /*out*/ RuntimeHandle* handle);
-        using GetRuntimeDelegate = uint32_t(*)(RuntimeHandle handle, int delegate_type, /*out*/ void** result);
-        using GetRuntimePropertyValueDelegate = uint32_t(*)(RuntimeHandle handle, const wchar_t* name, /*out*/ const wchar_t** value);
-        using GetRuntimePropertiesDelegate = uint32_t(*)(RuntimeHandle handle, /*out*/ size_t* count, /*out*/ const wchar_t** keys, /*out*/ const wchar_t** values);
-        using CloseDelegate = uint32_t(*)(RuntimeHandle handle);
-        using LoadAssemblyAndGetFunctionPointerDelegate = uint32_t(*)(const wchar_t* assemblyPath, const wchar_t* typeName, const wchar_t* methodName, const wchar_t* delegateTypeName, void* reserved, /*out*/ void** result);
-    };
-    
     /// <summary>
     /// Windows-specific implementation of IHost.
     /// </summary>
@@ -45,11 +33,11 @@ namespace DotNetRuntimeHost
         friend class WindowsHostFactory;
 
     private:
-        HostFxr::InitializeForRuntimeConfigDelegate _initializeForRuntimeConfig;
-        HostFxr::GetRuntimeDelegate _getRuntime;
-        HostFxr::GetRuntimePropertyValueDelegate _getRuntimePropertyValue;
-        HostFxr::GetRuntimePropertiesDelegate _getRuntimeProperties;
-        HostFxr::CloseDelegate _close;
+        hostfxr_initialize_for_runtime_config_fn _initializeForRuntimeConfig;
+        hostfxr_get_runtime_delegate_fn _getRuntime;
+        hostfxr_get_runtime_property_value_fn _getRuntimePropertyValue;
+        hostfxr_get_runtime_properties_fn _getRuntimeProperties;
+        hostfxr_close_fn _close;
 
     private:
         /// <summary>
@@ -84,7 +72,7 @@ namespace DotNetRuntimeHost
     public:
         explicit WindowsHost(const std::filesystem::path& runtimeConfigPath)
         {
-            HMODULE hostfxrModule = nullptr;
+            HMODULE hostfxr_module;
             
             // Check if hostfxr.dll is already loaded in the process
             // This can happen if another .NET runtime version is already initialized
@@ -92,21 +80,21 @@ namespace DotNetRuntimeHost
             if (existingHostfxr != nullptr)
             {
                 // hostfxr is already loaded, we can use the existing one
-                hostfxrModule = existingHostfxr;
+                hostfxr_module = existingHostfxr;
             }
             else
             {
                 // Find and load hostfxr.dll with full path
                 std::filesystem::path hostfxrPath = FindHostFxrPath();
-                hostfxrModule = WinAPI::LoadLibrary(hostfxrPath.wstring());
+                hostfxr_module = WinAPI::LoadLibrary(hostfxrPath.wstring());
             }
             
             // Load function pointers from hostfxr.dll
-            _initializeForRuntimeConfig = WinAPI::GetProcAddress<HostFxr::InitializeForRuntimeConfigDelegate>(hostfxrModule, "hostfxr_initialize_for_runtime_config");
-            _getRuntime = WinAPI::GetProcAddress<HostFxr::GetRuntimeDelegate>(hostfxrModule, "hostfxr_get_runtime_delegate");
-            _getRuntimePropertyValue = WinAPI::GetProcAddress<HostFxr::GetRuntimePropertyValueDelegate>(hostfxrModule, "hostfxr_get_runtime_property_value");
-            _getRuntimeProperties = WinAPI::GetProcAddress<HostFxr::GetRuntimePropertiesDelegate>(hostfxrModule, "hostfxr_get_runtime_properties");
-            _close = WinAPI::GetProcAddress<HostFxr::CloseDelegate>(hostfxrModule, "hostfxr_close");
+            _initializeForRuntimeConfig = WinAPI::GetProcAddress<hostfxr_initialize_for_runtime_config_fn>(hostfxr_module, "hostfxr_initialize_for_runtime_config");
+            _getRuntime = WinAPI::GetProcAddress<hostfxr_get_runtime_delegate_fn>(hostfxr_module, "hostfxr_get_runtime_delegate");
+            _getRuntimePropertyValue = WinAPI::GetProcAddress<hostfxr_get_runtime_property_value_fn>(hostfxr_module, "hostfxr_get_runtime_property_value");
+            _getRuntimeProperties = WinAPI::GetProcAddress<hostfxr_get_runtime_properties_fn>(hostfxr_module, "hostfxr_get_runtime_properties");
+            _close = WinAPI::GetProcAddress<hostfxr_close_fn>(hostfxr_module, "hostfxr_close");
 
             // Initialize runtime (will handle already initialized runtime gracefully)
             InitializeRuntime(runtimeConfigPath);
@@ -115,7 +103,7 @@ namespace DotNetRuntimeHost
         ~WindowsHost() override = default;
 
     private:
-        HostFxr::LoadAssemblyAndGetFunctionPointerDelegate _loadAssemblyAndGetPtr;
+        load_assembly_and_get_function_pointer_fn _loadAssemblyAndGetPtr;
         std::string _runtimeVersion;
 
         /// <summary>
@@ -144,7 +132,7 @@ namespace DotNetRuntimeHost
         /// <exception cref="HostFxrException">Thrown when initialization fails.</exception>
         void InitializeRuntime(const std::filesystem::path& runtimeConfigPath)
         {
-            HostFxr::RuntimeHandle hostContext = nullptr;
+            hostfxr_handle hostContext = nullptr;
             uint32_t rc = _initializeForRuntimeConfig(runtimeConfigPath.native().c_str(), nullptr, &hostContext);
             
             // Check if we got an error code indicating incompatible runtime configuration
@@ -192,14 +180,14 @@ namespace DotNetRuntimeHost
 
             // Get the delegate for loading assemblies
             void* loadFunc = nullptr;
-            rc = _getRuntime(hostContext, HostFxr::LOAD_ASSEMBLY_AND_GET_FUNCTION_POINTER_DELEGATE_TYPE, &loadFunc);
+            rc = _getRuntime(hostContext, hdt_load_assembly_and_get_function_pointer, &loadFunc);
             if (rc != 0 || loadFunc == nullptr)
             {
                 _close(hostContext);
                 throw DotNetHostException(std::format("hostfxr_get_runtime_delegate failed: {}", HostFxrErrorCodes::GetFormattedError(rc)));
             }
 
-            _loadAssemblyAndGetPtr = reinterpret_cast<HostFxr::LoadAssemblyAndGetFunctionPointerDelegate>(loadFunc);
+            _loadAssemblyAndGetPtr = reinterpret_cast<load_assembly_and_get_function_pointer_fn>(loadFunc);
 
             _close(hostContext);
         }
@@ -211,7 +199,7 @@ namespace DotNetRuntimeHost
             // If delegate_type_name is set to (const wchar_t*)-1, it tells the runtime that the target
             // method is attributed with [UnmanagedCallersOnly], so no managed delegate type resolution
             // is needed. In this case hostfxr will return a raw unmanaged function pointer directly.
-            auto delegate_type_name = (const wchar_t*)-1;
+            auto delegate_type_name = reinterpret_cast<const wchar_t*>(-1);
 
             void* funcPtr = nullptr;
             uint32_t rc = _loadAssemblyAndGetPtr(
