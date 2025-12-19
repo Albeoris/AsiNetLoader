@@ -8,34 +8,33 @@ namespace Albeoris.AsiNetLoader.Tests;
 
 public class NativeAppsTests
 {
-    [Fact(DisplayName = "Run x64 native test app")]
-    public void Run_X64_Native_App()
+    public static TheoryData<String, String> GetTestCases() => new()
     {
-        RunAndAssertExitCodeZero(TestProcessContext.CreateX64());
-    }
-
-    [Fact(DisplayName = "Run x86 native test app")]
-    public void Run_X86_Native_App()
+        { "x64", "Albeoris.TestNativeAppX64.exe" },
+        { "x86", "Albeoris.TestNativeAppX86.exe" },
+        { "x64", "Albeoris.TestNetFrameworkAppX64.exe" },
+        { "x86", "Albeoris.TestNetFrameworkAppX86.exe" },
+    };
+    [Theory(DisplayName = "Run test app")]
+    [MemberData(nameof(GetTestCases))]
+    public void Run_Test_App(String platform, String exeName)
     {
-        RunAndAssertExitCodeZero(TestProcessContext.CreateX86());
+        TestProcessContext ctx = TestProcessContext.Create(platform, exeName);
+        RunAndAssertExitCodeZero(ctx);
     }
     
-    [Fact(DisplayName = "Hook x64 native test app")]
-    public void Hook_X64_Native_App()
+    [Theory(DisplayName = "Hook test app")]
+    [MemberData(nameof(GetTestCases))]
+    public void Hook_Test_App(String platform, String exeName)
     {
-        HookAndAssertExitCodeZero(TestProcessContext.CreateX64());
-    }
-
-    [Fact(DisplayName = "Hook x86 native test app")]
-    public void Hook_X86_Native_App()
-    {
-        HookAndAssertExitCodeZero(TestProcessContext.CreateX86());
+        TestProcessContext ctx = TestProcessContext.Create(platform, exeName);
+        HookAndAssertExitCodeZero(ctx);
     }
     
     [Fact(DisplayName = "Failover log if common place is not available")]
     public void Hook_X64_And_Check_LogFailoverAlg()
     {
-        TestProcessContext ctx = TestProcessContext.CreateX64();
+        TestProcessContext ctx = TestProcessContext.CreateX64Native();
         String primaryLogPath = ctx.GetPrimaryLogPath();
         String secondaryLogPath = ctx.GetSecondaryLogPath(ctx.StartInfo.FileName);
         

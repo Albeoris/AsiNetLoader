@@ -14,8 +14,9 @@ internal sealed class TestProcessContext(String platform, String exeRelativePath
     public String StdOut { get; set; }
     public String StdErr { get; set; }
     
-    public static TestProcessContext CreateX64() => new("x64", "Albeoris.TestNativeAppX64.exe");
-    public static TestProcessContext CreateX86() => new("x86", "Albeoris.TestNativeAppX86.exe");
+    public static TestProcessContext CreateX64Native() => new("x64", "Albeoris.TestNativeAppX64.exe");
+    
+    public static TestProcessContext Create(String platform, String exeName) => new(platform, exeName);
 
     private static ProcessStartInfo GetProcessStartInfo(String platform, String exeRelativePath)
     {
