@@ -107,7 +107,7 @@ public class NativeAppsTests
         RunAndAssertExitCodeZero(ctx);
 
         String logContent = ctx.ReadAllOutputText(ctx.StartInfo.FileName);
-        Assert.True(logContent.Contains("DllMain: DLL_PROCESS_ATTACH"), $"Failed to hook process.\nSTDOUT:\n{ctx.StdOut}\nSTDERR:\n{ctx.StdErr}\nLOG:\n{logContent}");
+        Assert.True(logContent.Contains("InitializeASI"), $"Failed to hook process.\nSTDOUT:\n{ctx.StdOut}\nSTDERR:\n{ctx.StdErr}\nLOG:\n{logContent}");
         Assert.True(logContent.Contains(".NET Runtime initialized successfully"), $"Failed to initialize .NET Runtime.\nSTDOUT:\n{ctx.StdOut}\nSTDERR:\n{ctx.StdErr}\nLOG:\n{logContent}");
     }
 
