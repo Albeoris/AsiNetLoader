@@ -1,4 +1,9 @@
-﻿export module Albeoris.DotNetRuntimeHost:WindowsHost;
+﻿module;
+
+// Include nethost.h from NuGet package Microsoft.NETCore.DotNetAppHost
+#include <nethost.h>
+
+export module Albeoris.DotNetRuntimeHost:WindowsHost;
 
 import <cstdint>;
 import <filesystem>;
@@ -48,58 +53,32 @@ namespace Albeoris::DotNetRuntimeHost
 
     private:
         /// <summary>
-        /// Finds the path to hostfxr.dll in the .NET installation.
+        /// Finds the path to hostfxr.dll using nethost get_hostfxr_path API.
         /// </summary>
         /// <returns>Full path to hostfxr.dll</returns>
         static std::filesystem::path FindHostFxrPath()
         {
-            // Try to get DOTNET_ROOT environment variable first
-            wchar_t dotnetRoot[MAX_PATH];
-            DWORD result = GetEnvironmentVariableW(L"DOTNET_ROOT", dotnetRoot, MAX_PATH);
+            // Use get_hostfxr_path from statically linked nethost.lib
+            // get_hostfxr_path is declared in nethost.h
             
-            std::filesystem::path basePath;
-            if (result > 0 && result < MAX_PATH)
+            // Get the required buffer size
+            size_t buffer_size = 0;
+            int rc = get_hostfxr_path(nullptr, &buffer_size, nullptr);
+            if (rc != 0 && buffer_size == 0)
             {
-                basePath = dotnetRoot;
+                throw DotNetHostException(std::format(L"get_hostfxr_path failed to get buffer size (rc: {})", rc));
             }
-            else
-            {
-                // Default installation path
-                basePath = L"C:\\Program Files\\dotnet";
-            }
+
+            // Allocate buffer and get the path
+            std::vector<wchar_t> buffer(buffer_size);
+            rc = get_hostfxr_path(buffer.data(), &buffer_size, nullptr);
             
-            // Look for the latest version of hostfxr
-            std::filesystem::path fxrPath = basePath / "host" / "fxr";
-            if (!std::filesystem::exists(fxrPath))
+            if (rc != 0)
             {
-                throw DotNetHostException(std::format(L"Could not find hostfxr directory at: {}", fxrPath.wstring()));
+                throw DotNetHostException(std::format(L"get_hostfxr_path failed (rc: {})", rc));
             }
-            
-            // Find the latest version directory
-            std::filesystem::path latestVersion;
-            for (const auto& entry : std::filesystem::directory_iterator(fxrPath))
-            {
-                if (entry.is_directory())
-                {
-                    if (latestVersion.empty() || entry.path().filename() > latestVersion.filename())
-                    {
-                        latestVersion = entry.path();
-                    }
-                }
-            }
-            
-            if (latestVersion.empty())
-            {
-                throw DotNetHostException(L"No hostfxr version found in .NET installation");
-            }
-            
-            std::filesystem::path hostfxrDll = latestVersion / "hostfxr.dll";
-            if (!std::filesystem::exists(hostfxrDll))
-            {
-                throw DotNetHostException(std::format(L"hostfxr.dll not found at: {}", hostfxrDll.wstring()));
-            }
-            
-            return hostfxrDll;
+
+            return std::filesystem::path(buffer.data());
         }
 
     public:
@@ -228,11 +207,7 @@ namespace Albeoris::DotNetRuntimeHost
             uint32_t rc = _getRuntimeProperties(nullptr, &count, nullptr, nullptr);
             
             if (rc != HostFxrErrorCodes::HostApiBufferTooSmall || count == 0)
-            {
-                std::cout << "Failed to get runtime properties count or no properties available: " 
-                          << HostFxrErrorCodes::GetFormattedError(rc) << std::endl;
-                return properties;
-            }
+                throw DotNetHostException(std::format("Failed to get runtime properties count or no properties available: {}", HostFxrErrorCodes::GetFormattedError(rc)));
 
             // Allocate arrays for keys and values
             std::vector<const wchar_t*> keys(count);
@@ -242,11 +217,7 @@ namespace Albeoris::DotNetRuntimeHost
             rc = _getRuntimeProperties(nullptr, &count, keys.data(), values.data());
             
             if (rc != 0)
-            {
-                std::cout << "Failed to get runtime properties: " 
-                          << HostFxrErrorCodes::GetFormattedError(rc) << std::endl;
-                return properties;
-            }
+                throw DotNetHostException(std::format("Failed to get runtime properties: {}", HostFxrErrorCodes::GetFormattedError(rc)));
 
             // Copy to map
             for (size_t i = 0; i < count; ++i)

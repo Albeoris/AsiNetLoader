@@ -21,7 +21,10 @@ namespace Albeoris::DotNetRuntimeHost
 
             HMODULE lib = ::LoadLibraryW(nullTerminatedPath);
             if (!lib)
-                throw DotNetHostException(std::format(L"{0} could not be found. {0} is required.", dllName));
+            {
+                const DWORD ec = ::GetLastError();
+                throw DotNetHostException(std::format(L"{} could not be loaded (error: {})", dllName, ec));
+            }
             return lib;
         }
 

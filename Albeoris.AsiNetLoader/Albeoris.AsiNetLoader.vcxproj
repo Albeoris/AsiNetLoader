@@ -16,6 +16,12 @@
         <ClCompile Include="Modules\Albeoris.Clr\GamePluginHost.DotNetPluginLoader.ixx" />
         <ClCompile Include="Modules\Albeoris.Clr\GamePluginHost.ixx" />
         <ClCompile Include="Modules\Albeoris.Clr\GamePluginHost.Platform.ixx" />
+        <ClCompile Include="Logging\Logging.ixx" />
+        <ClCompile Include="Logging\ILogger.ixx" />
+        <ClCompile Include="Logging\ILoggerFactory.ixx" />
+        <ClCompile Include="Logging\ConsoleLogger.ixx" />
+        <ClCompile Include="Logging\FileLogger.ixx" />
+        <ClCompile Include="Logging\FileLoggerFactory.ixx" />
         <ClCompile Include="dllmain.cpp" />
     </ItemGroup>
 
@@ -65,6 +71,8 @@
         <ExtensionsToDeleteOnClean>$(ExtensionsToDeleteOnClean);*.asi</ExtensionsToDeleteOnClean>
     </PropertyGroup>
 
+    <Import Project="..\Targets\IncludeRuntimePackage.targets" />
+
     <!-- Common compiler/linker settings shared by x86/x64 -->
     <ItemDefinitionGroup>
         <ClCompile>
@@ -74,10 +82,14 @@
             <!-- Ensure C++20 is used so modules syntax is recognized -->
             <LanguageStandard>stdcpp23</LanguageStandard>
             <ScanSourceForModuleDependencies>true</ScanSourceForModuleDependencies>
+            <!-- Use static CRT to match libnethost.lib -->
+            <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
         </ClCompile>
         <Link>
             <SubSystem>Console</SubSystem>
             <GenerateDebugInformation>true</GenerateDebugInformation>
+            <!-- Ignore missing PDB warnings from libnethost.lib -->
+            <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
         </Link>
     </ItemDefinitionGroup>
 

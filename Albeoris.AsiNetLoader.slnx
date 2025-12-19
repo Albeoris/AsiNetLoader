@@ -9,6 +9,9 @@
     <File Path="README.md" />
     <File Path="Build.targets" />
   </Folder>
+  <Folder Name="/Targets/">
+    <File Path="Targets\IncludeRuntimePackage.targets" />
+  </Folder>
   <Folder Name="/Tests/">
     <Project Path="Tests/Albeoris.AsiNetLoader.Tests/Albeoris.AsiNetLoader.Tests.csproj">
       <BuildDependency Project="Tests/Albeoris.TestNativeApp/Albeoris.TestNativeApp.vcxproj" />

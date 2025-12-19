@@ -37,10 +37,10 @@
         <!-- Windows SDK to target (10.0 = latest installed) -->
         <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
     </PropertyGroup>
-
+    
     <!-- Imports baseline MSBuild defaults for C++ toolchain -->
     <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-
+    
     <!-- Configuration-wide defaults (inherited by all configs unless overridden) -->
     <PropertyGroup Label="Configuration">
         <!-- Static library (.lib) output -->
@@ -68,7 +68,7 @@
 
     <!-- Imports common C++ props (after setting core config props) -->
     <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-
+    
     <PropertyGroup Condition="'$(Platform)'=='Win32'" Label="Configuration">
         <TargetName>$(TargetName)X86</TargetName>
         <OutDir>Output\x86\</OutDir>
@@ -81,13 +81,6 @@
         <IntDir>obj\x64\</IntDir>
     </PropertyGroup>
 
-    <!-- User-specific property sheets (optional, per platform) -->
-    <ImportGroup Label="PropertySheets">
-        <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props"
-                Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')"
-                Label="LocalAppDataPlatform" />
-    </ImportGroup>
-
     <!-- Linker incremental mode for fast Debug relinks -->
     <PropertyGroup Condition="'$(Configuration)'=='Debug'">
         <LinkIncremental>true</LinkIncremental>
@@ -97,6 +90,8 @@
     <PropertyGroup Condition="'$(Configuration)'=='Release'">
         <LinkIncremental>false</LinkIncremental>
     </PropertyGroup>
+
+    <Import Project="..\Targets\IncludeRuntimePackage.targets" />
 
     <!-- ====================== Common defaults ====================== -->
     <ItemDefinitionGroup>
@@ -118,13 +113,15 @@
             <TreatSpecificWarningsAsErrors>4715</TreatSpecificWarningsAsErrors>
 
             <!-- Library build; append user/parent defines -->
-            <PreprocessorDefinitions>_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <PreprocessorDefinitions>_LIB;NETHOST_USE_AS_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
         </ClCompile>
         <Link>
             <!-- Win subsystem (even for .lib affects manifest/tooling) -->
             <SubSystem>Windows</SubSystem>
             <!-- /DEBUG (PDBs) for both configs; size trimmed in Release -->
             <GenerateDebugInformation>true</GenerateDebugInformation>
+            <!-- Ignore missing PDB warnings from libnethost.lib -->
+            <AdditionalOptions>/ignore:4099 %(AdditionalOptions)</AdditionalOptions>
         </Link>
     </ItemDefinitionGroup>
 
@@ -136,7 +133,7 @@
         </ClCompile>
     </ItemDefinitionGroup>
 
-    <!-- x64: nothing extra; keep defaults clean -->
+    <!-- x64: nothing extra -->
     <ItemDefinitionGroup Condition="'$(Platform)'=='x64'">
         <ClCompile />
     </ItemDefinitionGroup>
@@ -147,6 +144,8 @@
         <ClCompile>
             <Optimization>Disabled</Optimization>
             <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <!-- Static CRT for Debug -->
+            <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
         </ClCompile>
     </ItemDefinitionGroup>
 
@@ -160,6 +159,8 @@
             <!-- /Oi (intrinsics) -->
             <IntrinsicFunctions>true</IntrinsicFunctions>
             <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+            <!-- Static CRT for Release -->
+            <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
         </ClCompile>
         <Link>
             <!-- /OPT:ICF -->

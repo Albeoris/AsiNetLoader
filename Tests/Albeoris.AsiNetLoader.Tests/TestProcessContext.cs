@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using Microsoft.VisualBasic.FileIO;
 using Xunit;
 
 namespace Albeoris.AsiNetLoader.Tests;
@@ -32,6 +33,28 @@ internal sealed class TestProcessContext(String platform, String exeRelativePath
             CreateNoWindow = true
         };
         return psi;
+    }
+
+    public String PluginsDirectoryPath => Path.Combine(StartInfo.WorkingDirectory, "Plugins");
+
+    public String GetPrimaryLogPath() => Path.Combine(PluginsDirectoryPath, "Logs", "Albeoris.AsiNetLoader.log");
+    public String GetSecondaryLogPath(String executablePath)
+    {
+        String executableName = Path.GetFileNameWithoutExtension(executablePath); 
+        return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Albeoris", "AsiNetLoader", executableName, "Logs", "Albeoris.AsiNetLoader.log");
+    }
+
+    public String ReadAllOutputText(String executablePath)
+    {
+        String primaryLogPath = GetPrimaryLogPath();
+        if (File.Exists(primaryLogPath))
+            return File.ReadAllText(primaryLogPath);
+        
+        String secondaryLogPath = GetSecondaryLogPath(executablePath);
+        if (File.Exists(secondaryLogPath))
+            return File.ReadAllText(secondaryLogPath);
+
+        return StdOut;
     }
 
     private static String GetOutputFolder()

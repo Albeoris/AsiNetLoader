@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <!-- NuGet packages for native host -->
+    <!-- Note: Both packages must be restored without conditions, as $(Platform) is not available during restore -->
+    <ItemGroup>
+        <PackageReference Include="runtime.win-x64.microsoft.netcore.dotnetapphost" Version="10.0.0" GeneratePathProperty="true" />
+        <PackageReference Include="runtime.win-x86.microsoft.netcore.dotnetapphost" Version="10.0.0" GeneratePathProperty="true" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <NethostNativeDir Condition="'$(Platform)'=='x64'">$(Pkgruntime_win-x64_Microsoft_NETCore_DotNetAppHost)\runtimes\win-x64\native</NethostNativeDir>
+        <NethostNativeDir Condition="'$(Platform)'=='Win32'">$(Pkgruntime_win-x86_Microsoft_NETCore_DotNetAppHost)\runtimes\win-x86\native</NethostNativeDir>
+    </PropertyGroup>
+    
+    <ItemDefinitionGroup>
+        <ClCompile>
+            <AdditionalIncludeDirectories>$(NethostNativeDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+        </ClCompile>
+        <Link>
+            <AdditionalLibraryDirectories>$(NethostNativeDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+            <AdditionalDependencies>libnethost.lib;%(AdditionalDependencies)</AdditionalDependencies>
+        </Link>
+    </ItemDefinitionGroup>
+
+    <!-- Validate that NethostNativeDir is defined -->
+    <Target Name="ValidateNethostNativeDir" BeforeTargets="PrepareForBuild">
+        <Error Condition="'$(Platform)'=='x64' AND '$(Pkgruntime_win-x64_Microsoft_NETCore_DotNetAppHost)'==''" 
+               Text="NuGet package 'runtime.win-x64.microsoft.netcore.dotnetapphost' is not restored. Run NuGet restore first." />
+        <Error Condition="'$(Platform)'=='Win32' AND '$(Pkgruntime_win-x86_Microsoft_NETCore_DotNetAppHost)'==''" 
+               Text="NuGet package 'runtime.win-x86.microsoft.netcore.dotnetapphost' is not restored. Run NuGet restore first." />
+        <Error Condition="'$(Platform)'!='x64' AND '$(Platform)'!='Win32'" 
+               Text="Unsupported platform '$(Platform)'. Only x64 and Win32 are supported." />
+    </Target>
+
+</Project>

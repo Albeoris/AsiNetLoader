@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Enumeration;
 using Xunit;
 
 namespace Albeoris.AsiNetLoader.Tests;
@@ -30,6 +31,51 @@ public class NativeAppsTests
     {
         HookAndAssertExitCodeZero(TestProcessContext.CreateX86());
     }
+    
+    [Fact(DisplayName = "Failover log if common place is not available")]
+    public void Hook_X64_And_Check_LogFailoverAlg()
+    {
+        TestProcessContext ctx = TestProcessContext.CreateX64();
+        String primaryLogPath = ctx.GetPrimaryLogPath();
+        String secondaryLogPath = ctx.GetSecondaryLogPath(ctx.StartInfo.FileName);
+        
+        Cleanup();
+
+        try
+        {
+            HookAndAssertExitCodeZero(ctx);
+            Assert.True(File.Exists(primaryLogPath), $"Primary log file not found: {primaryLogPath}");
+
+            File.Delete(primaryLogPath);
+            Directory.CreateDirectory(primaryLogPath); // Take the log location to prevent file creation
+            HookAndAssertExitCodeZero(ctx);
+            Assert.True(File.Exists(secondaryLogPath), $"Secondary log file not found: {secondaryLogPath}");
+            
+            File.Delete(secondaryLogPath);
+            Directory.CreateDirectory(secondaryLogPath); // Take the log location to prevent file creation
+            HookAndAssertExitCodeZero(ctx);
+            Assert.True(ctx.StdOut.Contains(".NET Runtime initialized successfully"), $"Failed to failover logs to the console.\nSTDOUT:\n{ctx.StdOut}\nSTDERR:\n{ctx.StdErr}");
+        }
+        finally
+        {
+            Cleanup();
+        }
+
+        return;
+
+        void Cleanup()
+        {
+            if (Directory.Exists(primaryLogPath))
+                Directory.Delete(primaryLogPath);
+            else if (File.Exists(primaryLogPath))
+                File.Delete(primaryLogPath);
+
+            if (Directory.Exists(secondaryLogPath))
+                Directory.Delete(secondaryLogPath);
+            else if (File.Exists(secondaryLogPath))
+                File.Delete(secondaryLogPath);
+        }
+    }
 
     private static void RunAndAssertExitCodeZero(TestProcessContext ctx)
     {
@@ -47,21 +93,22 @@ public class NativeAppsTests
         ctx.StdOut = stdout;
         ctx.StdErr = stderr;
     }
-    
+
     private static void HookAndAssertExitCodeZero(TestProcessContext ctx)
     {
-        String workingDirectory = Path.GetDirectoryName(ctx.StartInfo.FileName);
-        Assert.NotNull(workingDirectory);
+        String workingDirectory = ctx.StartInfo.WorkingDirectory;
 
-        String pluginsFolder = Path.Combine(workingDirectory, "Plugins");
+        String pluginsFolder = ctx.PluginsDirectoryPath;
         String sourcePluginFolder = Path.GetFullPath(Path.Combine(workingDirectory, "..", "..", "Plugin", ctx.Platform));
         Assert.True(Directory.Exists(sourcePluginFolder), $"Plugin folder not found: {sourcePluginFolder}");
-        
+
         CreateJunctionPoint(pluginsFolder, sourcePluginFolder);
 
         RunAndAssertExitCodeZero(ctx);
 
-        Assert.True(ctx.StdOut.Contains("DllMain: DLL_PROCESS_ATTACH"), $"Process did not print DLL_PROCESS_ATTACH.\nSTDOUT:\n{ctx.StdOut}\nSTDERR:\n{ctx.StdErr}");
+        String logContent = ctx.ReadAllOutputText(ctx.StartInfo.FileName);
+        Assert.True(logContent.Contains("DllMain: DLL_PROCESS_ATTACH"), $"Failed to hook process.\nSTDOUT:\n{ctx.StdOut}\nSTDERR:\n{ctx.StdErr}\nLOG:\n{logContent}");
+        Assert.True(logContent.Contains(".NET Runtime initialized successfully"), $"Failed to initialize .NET Runtime.\nSTDOUT:\n{ctx.StdOut}\nSTDERR:\n{ctx.StdErr}\nLOG:\n{logContent}");
     }
 
     private static void CreateJunctionPoint(String sourceDirectory, String targetPath)

@@ -1,7 +1,9 @@
 #include <chrono>
 #include <Windows.h>
 #include <cstdio>
+#include <iomanip>
 #include <iostream>
+#include <sstream>
 #include <thread>
 
 // prototypes from dinput8.dll (import not required for dynamic lookup; kept for signature reference)
@@ -17,6 +19,21 @@ extern "C" void __cdecl PrintHello()
     #endif
 }
 
+std::string GetTimestamp()
+{
+    auto now = std::chrono::system_clock::now();
+    auto time_t_now = std::chrono::system_clock::to_time_t(now);
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
+
+    std::tm tm_now;
+    localtime_s(&tm_now, &time_t_now);
+
+    std::ostringstream oss;
+    oss << std::put_time(&tm_now, "%Y-%m-%d %H:%M:%S");
+    oss << '.' << std::setfill('0') << std::setw(3) << ms.count();
+    return oss.str();
+}
+
 using DirectInput8Create_t = HRESULT (WINAPI *)(HINSTANCE, DWORD, REFIID, LPVOID*, LPUNKNOWN);
 
 int main()
@@ -24,7 +41,7 @@ int main()
     HMODULE dinput = LoadLibraryW(L"dinput8.dll");
     if (!dinput)
     {
-        std::wcerr << L"Failed to load dinput8.dll from " << std::endl;
+        std::cerr << "[" << GetTimestamp() << "] " << "Failed to load dinput8.dll from " << '\n';
         return 10;
     }
 
@@ -50,6 +67,6 @@ int main()
     // Call local cdecl test function
     PrintHello();
 
-    std::puts("Native app finished.");
+    std::puts(("[" + GetTimestamp() + "]" + "Native app finished.").c_str());
     return 0;
 }
