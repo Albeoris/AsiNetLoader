@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+    <ItemGroup Label="ProjectConfigurations">
+        <ProjectConfiguration Include="Release|x64">
+            <Configuration>Release</Configuration>
+            <Platform>x64</Platform>
+        </ProjectConfiguration>
+        <ProjectConfiguration Include="Release|Win32">
+            <Configuration>Release</Configuration>
+            <Platform>Win32</Platform>
+        </ProjectConfiguration>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ClCompile Include="main.cpp" />
+    </ItemGroup>
+
+    <PropertyGroup Label="Globals">
+        <VCProjectVersion>17.0</VCProjectVersion>
+        <Keyword>Win32Proj</Keyword>
+        <RootNamespace>TestNativeApp</RootNamespace>
+        <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    </PropertyGroup>
+
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+
+    <PropertyGroup Label="Configuration">
+        <ConfigurationType>Application</ConfigurationType>
+        <UseDebugLibraries>false</UseDebugLibraries>
+        <PlatformToolset>v143</PlatformToolset>
+        <WholeProgramOptimization>true</WholeProgramOptimization>
+        <CharacterSet>Unicode</CharacterSet>
+    </PropertyGroup>
+    
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+
+    <PropertyGroup Condition="'$(Platform)'=='Win32'" Label="Configuration">
+        <TargetName>$(TargetName)X86</TargetName>
+        <OutDir>..\..\Output\Tests\x86\</OutDir>
+        <IntDir>obj\x86\</IntDir>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Platform)'=='x64'" Label="Configuration">
+        <TargetName>$(TargetName)X64</TargetName>
+        <OutDir>..\..\Output\Tests\x64\</OutDir>
+        <IntDir>obj\x64\</IntDir>
+    </PropertyGroup>
+    
+    <!-- Common compiler/linker settings shared by x86/x64 -->
+    <ItemDefinitionGroup>
+        <ClCompile>
+            <WarningLevel>Level3</WarningLevel>
+            <SDLCheck>true</SDLCheck>
+            <ConformanceMode>true</ConformanceMode>
+        </ClCompile>
+        <Link>
+            <SubSystem>Console</SubSystem>
+            <GenerateDebugInformation>true</GenerateDebugInformation>
+        </Link>
+    </ItemDefinitionGroup>
+
+    <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+
+    <!-- Ensure OutDir exists; OutDir differs per project, so leave value there -->
+    <Target Name="EnsureOutDir" BeforeTargets="PrepareForBuild">
+        <MakeDir Directories="$(OutDir)" />
+    </Target>
+
+<!--    &lt;!&ndash; Build both x86 and x64 when building for any platform &ndash;&gt;-->
+<!--    <Target Name="BuildOtherPlatform" AfterTargets="Build">-->
+<!--        <PropertyGroup>-->
+<!--            <OtherPlatform Condition="'$(Platform)' == 'Win32'">x64</OtherPlatform>-->
+<!--            <OtherPlatform Condition="'$(Platform)' == 'x64'">Win32</OtherPlatform>-->
+<!--        </PropertyGroup>-->
+<!--        -->
+<!--        <Message Text="Building $(MSBuildProjectName) for $(OtherPlatform) platform..." Importance="high" />-->
+<!--        -->
+<!--        <MSBuild Projects="$(MSBuildProjectFullPath)"-->
+<!--                 Targets="Build"-->
+<!--                 Properties="Platform=$(OtherPlatform);Configuration=$(Configuration)"-->
+<!--                 BuildInParallel="false"-->
+<!--                 StopOnFirstFailure="true" />-->
+<!--    </Target>-->
+
+</Project>

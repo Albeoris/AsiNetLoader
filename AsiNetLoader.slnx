@@ -1,0 +1,53 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Win32" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Folder Name="/Solution Items/">
+    <File Path="LICENSE" />
+    <File Path="MsBuild.bat" />
+    <File Path="README.md" />
+    <File Path="Build.targets" />
+  </Folder>
+  <Folder Name="/Targets/">
+    <File Path="Targets\IncludeRuntimePackage.targets" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="Tests/AsiNetLoader.Tests/AsiNetLoader.Tests.csproj">
+      <BuildDependency Project="Tests/TestNetFrameworkApp/TestNetFrameworkApp.csproj" />
+      <BuildDependency Project="Tests/TestNetApp/TestNetApp.csproj" />
+        <BuildDependency Project="Tests\TestNativeApp\TestNativeApp.vcxproj" />
+    </Project>
+    <Project Path="Tests/TestNetFrameworkApp/TestNetFrameworkApp.csproj">
+        <BuildType Project="Release" />
+        <Platform Solution="Release|x64" Project="x64" />
+        <Platform Solution="Release|Win32" Project="x86" />
+        <Platform Solution="Debug|x64" Project="x64" />
+        <Platform Solution="Debug|Win32" Project="x86" />
+    </Project>
+    <Project Path="Tests/TestNetApp/TestNetApp.csproj">
+        <BuildType Project="Release" />
+        <Platform Solution="Release|x64" Project="x64" />
+        <Platform Solution="Release|Win32" Project="x86" />
+        <Platform Solution="Debug|x64" Project="x64" />
+        <Platform Solution="Debug|Win32" Project="x86" />
+    </Project>
+    <Project Path="Tests\TestNativeApp\TestNativeApp.vcxproj">
+        <BuildType Project="Release" />
+        <Configuration Solution="Debug|Win32" Project="Release|Win32" />
+        <Configuration Solution="Debug|x64" Project="Release|x64" />
+    </Project>
+  </Folder>
+  <Project Path="AsiNetLoader.Contracts\AsiNetLoader.Contracts.csproj" />
+  <Project Path="AsiNetLoader.Managed\AsiNetLoader.Managed.csproj" />
+  <Project Path="AsiNetLoader\AsiNetLoader.vcxproj">
+      <BuildType Project="Release" />
+      <Configuration Solution="Debug|Win32" Project="Release|Win32" />
+      <Configuration Solution="Debug|x64" Project="Release|x64" />
+  </Project>
+  <Project Path="DotNetRuntimeHost\DotNetRuntimeHost.vcxproj">
+      <BuildType Project="Release" />
+      <Configuration Solution="Debug|Win32" Project="Release|Win32" />
+      <Configuration Solution="Debug|x64" Project="Release|x64" />
+  </Project>
+</Solution>

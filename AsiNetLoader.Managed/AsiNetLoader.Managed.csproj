@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net5.0</TargetFramework>
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <Platforms>AnyCPU</Platforms>
+        <OutputType>Library</OutputType>
+        <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        
+        <!-- Build output to temporary location -->
+        <!-- <OutDir>Output\</OutDir> -->
+        
+        <!-- Disable default output path behavior -->
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+        
+        <!-- Generate runtimeconfig.json with custom name -->
+        <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+        <RollForward>LatestMajor</RollForward>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\AsiNetLoader.Contracts\AsiNetLoader.Contracts.csproj" />
+    </ItemGroup>
+
+    <!-- Copy output to both x64 and x86 plugin folders after build -->
+    <Import Project="..\Build.targets" />
+</Project>

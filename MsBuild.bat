@@ -5,7 +5,7 @@ rem MsBuild.bat - Build a .slnx (solution filter) using MSBuild found via vswher
 rem Usage:
 rem   MsBuild.bat [path\to\solution.slnx] [additional msbuild args]
 rem Examples:
-rem   MsBuild.bat .\Albeoris.AsiNetLoader.slnx /p:Configuration=Release
+rem   MsBuild.bat .\AsiNetLoader.slnx /p:Configuration=Release
 
 rem Capture remaining args for MSBuild
 set "ARGS=%*"
