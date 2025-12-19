@@ -15,9 +15,17 @@
   <Folder Name="/Tests/">
     <Project Path="Tests/Albeoris.AsiNetLoader.Tests/Albeoris.AsiNetLoader.Tests.csproj">
       <BuildDependency Project="Tests/Albeoris.TestNetFrameworkApp/Albeoris.TestNetFrameworkApp.csproj" />
+      <BuildDependency Project="Tests/Albeoris.TestNet8App/Albeoris.TestNet8App.csproj" />
         <BuildDependency Project="Tests\Albeoris.TestNativeApp\Albeoris.TestNativeApp.vcxproj" />
     </Project>
     <Project Path="Tests/Albeoris.TestNetFrameworkApp/Albeoris.TestNetFrameworkApp.csproj">
+        <BuildType Project="Release" />
+        <Platform Solution="Release|x64" Project="x64" />
+        <Platform Solution="Release|Win32" Project="x86" />
+        <Platform Solution="Debug|x64" Project="x64" />
+        <Platform Solution="Debug|Win32" Project="x86" />
+    </Project>
+    <Project Path="Tests/Albeoris.TestNet8App/Albeoris.TestNet8App.csproj">
         <BuildType Project="Release" />
         <Platform Solution="Release|x64" Project="x64" />
         <Platform Solution="Release|Win32" Project="x86" />

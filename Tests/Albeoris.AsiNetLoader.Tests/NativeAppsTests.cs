@@ -14,6 +14,8 @@ public class NativeAppsTests
         { "x86", "Albeoris.TestNativeAppX86.exe" },
         { "x64", "Albeoris.TestNetFrameworkAppX64.exe" },
         { "x86", "Albeoris.TestNetFrameworkAppX86.exe" },
+        { "x64", "Albeoris.TestNet8AppX64.exe" },
+        { "x86", "Albeoris.TestNet8AppX64.exe" },
     };
     [Theory(DisplayName = "Run test app")]
     [MemberData(nameof(GetTestCases))]
