@@ -15,9 +15,6 @@ using namespace Albeoris::AsiNetLoader::Logging;
 // Global logger instance
 std::shared_ptr<ILogger> g_logger;
 
-// Global list of suspended threads
-std::vector<HANDLE> g_suspendedThreads;
-
 void WriteDebugMessage(const char* text)
 {
     if (g_logger)
@@ -30,79 +27,6 @@ void WriteDebugMessage(const char* text)
 void WriteDebugMessage(const std::string& text)
 {
     WriteDebugMessage(text.c_str());
-}
-
-/// <summary>
-/// Suspends all threads in the current process except the current thread and the specified thread
-/// </summary>
-/// <param name="excludeThread">Thread handle to exclude from suspension</param>
-void SuspendAllOtherThreads(HANDLE excludeThread)
-{
-    DWORD currentProcessId = GetCurrentProcessId();
-    DWORD currentThreadId = GetCurrentThreadId();
-    DWORD excludeThreadId = GetThreadId(excludeThread);
-    
-    WriteDebugMessage("SuspendAllOtherThreads: Suspending all threads except current and initialization thread");
-    
-    HANDLE snapshot = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
-    if (snapshot == INVALID_HANDLE_VALUE)
-    {
-        WriteDebugMessage("SuspendAllOtherThreads: Failed to create thread snapshot");
-        return;
-    }
-    
-    THREADENTRY32 threadEntry = {};
-    threadEntry.dwSize = sizeof(THREADENTRY32);
-    
-    if (Thread32First(snapshot, &threadEntry))
-    {
-        do
-        {
-            // Skip threads not in our process
-            if (threadEntry.th32OwnerProcessID != currentProcessId)
-                continue;
-            
-            // Skip current thread and excluded thread
-            if (threadEntry.th32ThreadID == currentThreadId || threadEntry.th32ThreadID == excludeThreadId)
-                continue;
-            
-            // Open thread with suspend/resume access
-            HANDLE thread = OpenThread(THREAD_SUSPEND_RESUME, FALSE, threadEntry.th32ThreadID);
-            if (thread)
-            {
-                DWORD suspendCount = SuspendThread(thread);
-                if (suspendCount != (DWORD)-1)
-                {
-                    g_suspendedThreads.push_back(thread);
-                    WriteDebugMessage("SuspendAllOtherThreads: Suspended thread ID: " + std::to_string(threadEntry.th32ThreadID));
-                }
-                else
-                {
-                    CloseHandle(thread);
-                }
-            }
-        } while (Thread32Next(snapshot, &threadEntry));
-    }
-    
-    CloseHandle(snapshot);
-    WriteDebugMessage("SuspendAllOtherThreads: Suspended " + std::to_string(g_suspendedThreads.size()) + " threads");
-}
-
-/// <summary>
-/// Resumes all previously suspended threads
-/// </summary>
-void ResumeAllSuspendedThreads()
-{
-    WriteDebugMessage("ResumeAllSuspendedThreads: Resuming " + std::to_string(g_suspendedThreads.size()) + " threads");
-    
-    for (HANDLE thread : g_suspendedThreads)
-    {
-        ResumeThread(thread);
-        CloseHandle(thread);
-    }
-    
-    g_suspendedThreads.clear();
-    WriteDebugMessage("ResumeAllSuspendedThreads: All threads resumed");
 }
 
 // Thread function to initialize .NET runtime outside of loader lock
@@ -159,9 +83,6 @@ DWORD WINAPI InitializeRuntimeThread(LPVOID lpParam)
         WriteDebugMessage("InitializeRuntimeThread: Unexpected error");
         WriteDebugMessage(ex.what());
     }
-
-    // Resume all suspended threads after CLR initialization
-    ResumeAllSuspendedThreads();
     
     return 0;
 }
@@ -201,8 +122,6 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
             HANDLE hThread = CreateThread(nullptr, 0, InitializeRuntimeThread, hModule, 0, nullptr);
             if (hThread)
             {
-                // Suspend all other threads to prevent them from interfering with CLR initialization
-                SuspendAllOtherThreads(hThread);
                 CloseHandle(hThread);
             }
             else
