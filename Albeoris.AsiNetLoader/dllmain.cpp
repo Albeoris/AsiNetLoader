@@ -81,6 +81,10 @@ extern "C" __declspec(dllexport) void InitializeASI()
         
         WriteDebugMessage("InitializeASI: .NET Runtime initialized successfully");
         
+        // Get and display the actual runtime version that was loaded
+        auto runtimeVersion = host->GetRuntimeVersion();
+        WriteDebugMessage("InitializeASI: Loaded .NET Runtime version: " + runtimeVersion);
+        
         // Get and log all runtime properties
         auto properties = host->GetRuntimeProperties();
         WriteDebugMessage("InitializeASI: Runtime properties count: " + std::to_string(properties.size()));
@@ -88,10 +92,6 @@ extern "C" __declspec(dllexport) void InitializeASI()
         {
             std::wcout << L"  " << key << L" = " << value << std::endl;
         }
-        
-        // Get and display the actual runtime version that was loaded
-        auto runtimeVersion = host->GetRuntimeVersion();
-        WriteDebugMessage("InitializeASI: Loaded .NET Runtime version: " + runtimeVersion);
         
         // TODO: Load managed assembly and call methods
         // Example:

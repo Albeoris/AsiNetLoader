@@ -84,23 +84,38 @@ namespace Albeoris::DotNetRuntimeHost
     public:
         explicit WindowsHost(const std::filesystem::path& runtimeConfigPath)
         {
-            // Find and load hostfxr.dll with full path
-            std::filesystem::path hostfxrPath = FindHostFxrPath();
-            HMODULE lib = WinAPI::LoadLibrary(hostfxrPath.wstring());
-            _initializeForRuntimeConfig = WinAPI::GetProcAddress<HostFxr::InitializeForRuntimeConfigDelegate>(lib, "hostfxr_initialize_for_runtime_config");
-            _getRuntime = WinAPI::GetProcAddress<HostFxr::GetRuntimeDelegate>(lib, "hostfxr_get_runtime_delegate");
-            _getRuntimePropertyValue = WinAPI::GetProcAddress<HostFxr::GetRuntimePropertyValueDelegate>(lib, "hostfxr_get_runtime_property_value");
-            _getRuntimeProperties = WinAPI::GetProcAddress<HostFxr::GetRuntimePropertiesDelegate>(lib, "hostfxr_get_runtime_properties");
-            _close = WinAPI::GetProcAddress<HostFxr::CloseDelegate>(lib, "hostfxr_close");
+            // Check if hostfxr.dll is already loaded in the process
+            // This can happen if another .NET runtime version is already initialized
+            HMODULE existingHostfxr = GetModuleHandleW(L"hostfxr.dll");
+            if (existingHostfxr != nullptr)
+            {
+                // hostfxr is already loaded, we can use the existing one
+                // Load function pointers from the already-loaded module
+                _initializeForRuntimeConfig = WinAPI::GetProcAddress<HostFxr::InitializeForRuntimeConfigDelegate>(existingHostfxr, "hostfxr_initialize_for_runtime_config");
+                _getRuntime = WinAPI::GetProcAddress<HostFxr::GetRuntimeDelegate>(existingHostfxr, "hostfxr_get_runtime_delegate");
+                _getRuntimePropertyValue = WinAPI::GetProcAddress<HostFxr::GetRuntimePropertyValueDelegate>(existingHostfxr, "hostfxr_get_runtime_property_value");
+                _getRuntimeProperties = WinAPI::GetProcAddress<HostFxr::GetRuntimePropertiesDelegate>(existingHostfxr, "hostfxr_get_runtime_properties");
+                _close = WinAPI::GetProcAddress<HostFxr::CloseDelegate>(existingHostfxr, "hostfxr_close");
+            }
+            else
+            {
+                // Find and load hostfxr.dll with full path
+                std::filesystem::path hostfxrPath = FindHostFxrPath();
+                HMODULE lib = WinAPI::LoadLibrary(hostfxrPath.wstring());
+                _initializeForRuntimeConfig = WinAPI::GetProcAddress<HostFxr::InitializeForRuntimeConfigDelegate>(lib, "hostfxr_initialize_for_runtime_config");
+                _getRuntime = WinAPI::GetProcAddress<HostFxr::GetRuntimeDelegate>(lib, "hostfxr_get_runtime_delegate");
+                _getRuntimePropertyValue = WinAPI::GetProcAddress<HostFxr::GetRuntimePropertyValueDelegate>(lib, "hostfxr_get_runtime_property_value");
+                _getRuntimeProperties = WinAPI::GetProcAddress<HostFxr::GetRuntimePropertiesDelegate>(lib, "hostfxr_get_runtime_properties");
+                _close = WinAPI::GetProcAddress<HostFxr::CloseDelegate>(lib, "hostfxr_close");
+            }
 
-            // Initialize runtime
+            // Initialize runtime (will handle already initialized runtime gracefully)
             InitializeRuntime(runtimeConfigPath);
         }
 
         ~WindowsHost() override = default;
 
     private:
-        bool _runtimeInitialized = false;
         HostFxr::LoadAssemblyAndGetFunctionPointerDelegate _loadAssemblyAndGetPtr;
         std::string _runtimeVersion;
 
@@ -129,30 +144,52 @@ namespace Albeoris::DotNetRuntimeHost
         /// <exception cref="HostFxrException">Thrown when initialization fails.</exception>
         void InitializeRuntime(const std::filesystem::path& runtimeConfigPath)
         {
-            if (_runtimeInitialized)
-                return;
-
             HostFxr::RuntimeHandle hostContext = nullptr;
             uint32_t rc = _initializeForRuntimeConfig(runtimeConfigPath.native().c_str(), nullptr, &hostContext);
-            if (rc != 0)
+            
+            // Check if we got an error code indicating incompatible runtime configuration
+            if (rc == HostFxrErrorCodes::HostIncompatibleConfig)
+            {
+                // Runtime is already initialized with a different/incompatible version
+                // We cannot initialize a new runtime context, but we can still try to get
+                // the delegate from the existing runtime by passing nullptr as context
+                _runtimeVersion = "Existing runtime (incompatible version already loaded)";
+                
+                // Try to get the delegate for loading assemblies from the existing runtime
+                void* loadFunc = nullptr;
+                rc = _getRuntime(nullptr, HostFxr::LOAD_ASSEMBLY_AND_GET_FUNCTION_POINTER_DELEGATE_TYPE, &loadFunc);
+                if (rc == 0 && loadFunc != nullptr)
+                {
+                    _loadAssemblyAndGetPtr = reinterpret_cast<HostFxr::LoadAssemblyAndGetFunctionPointerDelegate>(loadFunc);
+                }
+                else
+                {
+                    // Failed to get the delegate from existing runtime
+                    throw DotNetHostException(std::format("Failed to get runtime delegate from existing runtime: {}", HostFxrErrorCodes::GetFormattedError(rc)));
+                }
+                return;
+            }
+            
+            // Check for other errors
+            if (rc != HostFxrErrorCodes::Success && rc != HostFxrErrorCodes::Success_HostAlreadyInitialized)
             {
                 if (hostContext)
                     _close(hostContext);
                 throw DotNetHostException(std::format("hostfxr_initialize_for_runtime_config failed: {}", HostFxrErrorCodes::GetFormattedError(rc)));
             }
 
-            // Commented out - FX_VERSION property doesn't exist in hostfxr_get_runtime_property_value
-            // const wchar_t* versionValue = nullptr;
-            // rc = _getRuntimePropertyValue(hostContext, L"FX_VERSION", &versionValue);
-            // if (rc != 0 || versionValue == nullptr)
-            // {
-            //     _close(hostContext);
-            //     throw DotNetHostException(std::format("Failed to get runtime version property: {}", HostFxrErrorCodes::GetFormattedError(rc)));
-            // }
-            // _runtimeVersion = WStringToUTF8(versionValue);
-            
-            _runtimeVersion = "Runtime initialized";
+            // If we got Success_HostAlreadyInitialized, the runtime was already initialized
+            // but we can still use it (it's compatible)
+            if (rc == HostFxrErrorCodes::Success_HostAlreadyInitialized)
+            {
+                _runtimeVersion = "Runtime initialized (reusing existing runtime)";
+            }
+            else
+            {
+                _runtimeVersion = "Runtime initialized";
+            }
 
+            // Get the delegate for loading assemblies
             void* loadFunc = nullptr;
             rc = _getRuntime(hostContext, HostFxr::LOAD_ASSEMBLY_AND_GET_FUNCTION_POINTER_DELEGATE_TYPE, &loadFunc);
             if (rc != 0 || loadFunc == nullptr)
@@ -164,7 +201,6 @@ namespace Albeoris::DotNetRuntimeHost
             _loadAssemblyAndGetPtr = reinterpret_cast<HostFxr::LoadAssemblyAndGetFunctionPointerDelegate>(loadFunc);
 
             _close(hostContext);
-            _runtimeInitialized = true;
         }
 
     public:
@@ -207,7 +243,7 @@ namespace Albeoris::DotNetRuntimeHost
             uint32_t rc = _getRuntimeProperties(nullptr, &count, nullptr, nullptr);
             
             if (rc != HostFxrErrorCodes::HostApiBufferTooSmall || count == 0)
-                throw DotNetHostException(std::format("Failed to get runtime properties count or no properties available: {}", HostFxrErrorCodes::GetFormattedError(rc)));
+                return properties;
 
             // Allocate arrays for keys and values
             std::vector<const wchar_t*> keys(count);
