@@ -1,5 +1,4 @@
 using System.Runtime.InteropServices;
-using Albeoris.AsiNetLoader.Contracts;
 
 namespace Albeoris.AsiNetLoader.Managed;
 

@@ -14,7 +14,7 @@ public interface IPluginContext
     /// <summary>
     /// Directory where plugin assemblies are located.
     /// </summary>
-    string PluginDirectory { get; }
+    String PluginDirectory { get; }
     
     /// <summary>
     /// Get all loaded plugins.
@@ -24,5 +24,5 @@ public interface IPluginContext
     /// <summary>
     /// Find plugin by name.
     /// </summary>
-    IPlugin? FindPlugin(string name);
+    IPlugin? FindPlugin(String name);
 }

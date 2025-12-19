@@ -5,8 +5,8 @@ namespace Albeoris.AsiNetLoader.Contracts;
 /// </summary>
 public interface IPluginLogger
 {
-    void Info(string message);
-    void Warning(string message);
-    void Error(string message);
-    void Debug(string message);
+    void Info(String message);
+    void Warning(String message);
+    void Error(String message);
+    void Debug(String message);
 }

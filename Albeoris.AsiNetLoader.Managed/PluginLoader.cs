@@ -14,7 +14,7 @@ internal class PluginLoader
         _logger = logger;
     }
 
-    public IReadOnlyList<IPlugin> LoadPlugins(string pluginsDirectory, IPluginContext context)
+    public IReadOnlyList<IPlugin> LoadPlugins(String pluginsDirectory, IPluginContext context)
     {
         _logger.Info($"Loading plugins from: {pluginsDirectory}");
 
@@ -52,7 +52,7 @@ internal class PluginLoader
         return plugins;
     }
 
-    private List<IPlugin> LoadPluginFromDirectory(string pluginDir, IPluginContext context)
+    private List<IPlugin> LoadPluginFromDirectory(String pluginDir, IPluginContext context)
     {
         var pluginName = Path.GetFileName(pluginDir);
         _logger.Info($"Loading plugin: {pluginName}");
@@ -154,7 +154,7 @@ internal class PluginLoadContext : AssemblyLoadContext
 {
     private readonly AssemblyDependencyResolver _resolver;
 
-    public PluginLoadContext(string name, string pluginPath) : base(name, isCollectible: true)
+    public PluginLoadContext(String name, String pluginPath) : base(name, isCollectible: true)
     {
         _resolver = new AssemblyDependencyResolver(pluginPath);
     }
@@ -172,7 +172,7 @@ internal class PluginLoadContext : AssemblyLoadContext
         return null;
     }
 
-    protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
+    protected override IntPtr LoadUnmanagedDll(String unmanagedDllName)
     {
         var libraryPath = _resolver.ResolveUnmanagedDllToPath(unmanagedDllName);
         if (libraryPath != null)

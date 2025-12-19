@@ -9,12 +9,12 @@ public interface IPlugin
     /// <summary>
     /// Plugin name for identification.
     /// </summary>
-    string Name { get; }
+    String Name { get; }
     
     /// <summary>
     /// Plugin version.
     /// </summary>
-    string Version { get; }
+    String Version { get; }
     
     /// <summary>
     /// Initialize the plugin.

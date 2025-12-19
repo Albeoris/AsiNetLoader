@@ -4,13 +4,37 @@
         <LangVersion>latest</LangVersion>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        
+
         <!-- This is a contracts library - should be loaded in Default ALC -->
         <OutputType>Library</OutputType>
-        
+
         <!-- Copy to plugin folders so it's available for plugins -->
         <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+
+        <!-- NuGet Package Metadata -->
+        <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+        <PackageId>Albeoris.AsiNetLoader.Contracts</PackageId>
+        <Version>1.0.0</Version>
+        <Authors>Albeoris</Authors>
+        <Company>Albeoris</Company>
+        <Product>AsiNetLoader</Product>
+        <Description>Contracts library for AsiNetLoader plugins. Defines interfaces for developing .NET plugins that can be loaded into native x86/x64 applications via the AsiNetLoader ASI loader.</Description>
+        <Copyright>Copyright (c) 2025 Albeoris</Copyright>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+        <PackageProjectUrl>https://github.com/Albeoris/AsiNetLoader</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/Albeoris/AsiNetLoader</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>asi;loader;plugin;dotnet;native;interop;hostfxr;hook</PackageTags>
+        <PackageReadmeFile>README.md</PackageReadmeFile>
+        <PublishRepositoryUrl>true</PublishRepositoryUrl>
+        <EmbedUntrackedSources>true</EmbedUntrackedSources>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="..\README.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
 
     <Import Project="..\Build.targets" />
 </Project>
