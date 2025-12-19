@@ -2,7 +2,7 @@
 # Edit at https://www.toptal.com/developers/gitignore?templates=csharp,c++,c,visualstudio,visualstudiocode,rider,jetbrains,jetbrains+all
 
 # ThirdParty exceptions
-!Tests/Albeoris.AsiNetLoader.Tests/ThirdParty/**/*.dll
+!Tests/AsiNetLoader.Tests/ThirdParty/**/*.dll
 
 ### C ###
 # Prerequisites
