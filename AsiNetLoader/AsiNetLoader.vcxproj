@@ -54,13 +54,13 @@
     <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
 
     <PropertyGroup Condition="'$(Platform)'=='Win32'" Label="Configuration">
-        <TargetName>Albeoris.$(TargetName)X86</TargetName>
+        <TargetName>Albeoris.NetLoaderX86</TargetName>
         <OutDir>..\Output\Plugin\x86\</OutDir>
         <IntDir>obj\x86\</IntDir>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Platform)'=='x64'" Label="Configuration">
-        <TargetName>Albeoris.$(TargetName)X64</TargetName>
+        <TargetName>Albeoris.NetLoaderX64</TargetName>
         <OutDir>..\Output\Plugin\x64\</OutDir>
         <IntDir>obj\x64\</IntDir>
     </PropertyGroup>
