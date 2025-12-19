@@ -93,13 +93,30 @@ extern "C" __declspec(dllexport) void InitializeASI()
             std::wcout << L"  " << key << L" = " << value << std::endl;
         }
         
-        // TODO: Load managed assembly and call methods
-        // Example:
-        // auto functionPtr = host->LoadAssemblyAndGetFunctionPointer(
-        //     L"YourAssembly.dll",
-        //     L"YourNamespace.YourClass, YourAssembly",
-        //     L"YourMethod"
-        // );
+        // Load AsiNetLoader.Managed.dll and call Bootstrap.Initialize
+        std::filesystem::path managedDllPath = dllDirectory / "NetLoader" / "Runtime" / "AsiNetLoader.Managed.dll";
+        
+        if (!std::filesystem::exists(managedDllPath))
+            throw DotNetHostException("Managed DLL not found: " + managedDllPath.string());
+        
+        WriteDebugMessage("InitializeASI: Loading managed assembly: " + managedDllPath.string());
+        
+        // Get function pointer to Bootstrap.Initialize method
+        using InitializeDelegate = void(*)();
+        auto initializePtr = reinterpret_cast<InitializeDelegate>(
+            host->LoadAssemblyAndGetFunctionPointer(
+                managedDllPath,
+                L"AsiNetLoader.Managed.Bootstrap, AsiNetLoader.Managed",
+                L"Initialize"
+            )
+        );
+        
+        if (initializePtr == nullptr)
+            throw DotNetHostException("Failed to get Initialize method pointer");
+        
+        WriteDebugMessage("InitializeASI: Calling Bootstrap.Initialize()");
+        initializePtr();
+        WriteDebugMessage("InitializeASI: Bootstrap.Initialize() completed successfully");
     }
     catch (const DotNetHostException& ex)
     {
